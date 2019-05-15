@@ -57,7 +57,7 @@ def main():
     print("Logging run output to driver.log\n\n")
     ### Variables ###
     ompNumThreadsL = [1,2,5,7,10,15,20]    ## Cores used in OMP tasks
-    matrixSizeL = [2000,3000,5000,10000]   ## outer dim of mats to run matrix_multiply on
+    matrixSizeL = [2000,3000,5000]   ## outer dim of mats to run matrix_multiply on
     nTrials     = 5                        ## number of trials to test,get stdev and mean
 
 
@@ -70,20 +70,21 @@ def main():
     print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
           "stdev"))
     print("--------------------------------------------------------")
-    for nThread in ompNumThreadsL: 
-        runTimeV = np.zeros([nTrials])
-        #nThread = 10
-        size=2000
-        for tIdx in range(nTrials):
-            cmd =  ("export OMP_NUM_THREADS={}; ./src/matrix/matrix_multiply "
-                    "data/{}/A.txt data/{}/B.txt  "
-                     "data/{}/output".format(nThread,size,size,size))
-            output = subprocess.getoutput(cmd)
-            runTime = parse_run_time(output) # Run time
-            runTimeV[tIdx]= runTime
-        print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
-              np.mean(runTimeV), np.std(runTimeV)))
-    print("--------------------------------------------------------")
+    for size in matrixSizeL:
+        for nThread in ompNumThreadsL: 
+            runTimeV = np.zeros([nTrials])
+            #nThread = 10
+            #size=2000
+            for tIdx in range(nTrials):
+                cmd =  ("export OMP_NUM_THREADS={}; ./src/matrix/matrix_multiply "
+                        "data/{}/A.txt data/{}/B.txt  "
+                         "data/{}/output".format(nThread,size,size,size))
+                output = subprocess.getoutput(cmd)
+                runTime = parse_run_time(output) # Run time
+                runTimeV[tIdx]= runTime
+            print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
+                  np.mean(runTimeV), np.std(runTimeV)))
+        print("--------------------------------------------------------")
 
 
 

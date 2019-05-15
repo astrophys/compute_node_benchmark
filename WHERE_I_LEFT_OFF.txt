@@ -1,5 +1,4 @@
 Did:
-1. Added log recording in parse_run_time()
 
 To Do:
 1. Create driver function that calls and runs utilities. Aggregates run time

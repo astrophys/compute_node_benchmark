@@ -40,13 +40,24 @@ Put Help here
     yum install python34-libs
     yum install python34-numpy
     yum install python34-tools
+
+    mkdir -p /opt/python3.4/lib/python3.4/site-packages
+    export PYTHONPATH=/opt/python3.4/lib/python3.4/site-packages:$PYTHONPATH
+    export PYTHONPATH=/opt/python3.4/lib64/python3.4/site-packages:$PYTHONPATH
+    export PATH=/opt/python3.4/bin:$PATH
+    easy_install-3.4 --prefix /opt/python3.4 pip
+    pip install --prefix /opt/python3.4 scipy
+    
+
     echo "Hello from inside the container"
 
 
 %runscript
     ######## Matrix Multiply ########
+    # Set Environmental Variables
+    export PYTHONPATH=/opt/python3.4/lib/python3.4/site-packages:$PYTHONPATH
+
     # Do compilation of files
-    # export OMP_NUM_THREADS=20
     gcc -O3 -fopenmp -c src/matrix/matrix_multiply_omp_cache_optimized.c -o src/matrix/matrix_multiply_omp_cache_optimized.o
     gcc -O3 -fopenmp src/matrix_multiply_omp.o -o src/matrix_multiply 
 

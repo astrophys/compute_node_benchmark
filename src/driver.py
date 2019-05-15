@@ -10,6 +10,9 @@
 #
 import time
 import sys
+import subprocess
+from error import exit_with_error
+from functions import parse_run_time
 
 def print_help(Arg):
     """
@@ -45,12 +48,22 @@ def main():
     nArg = len(sys.argv)
     if(nArg == 2 and (sys.argv[1][0:3] == "--h" or sys.argv[1][0:2] == "-h")):
         print_help(0)
-    elif(nArg != 9 and nArg != 10):
+    elif(nArg != 1):
         print_help(1)
     startTime = time.time()
     print("Start Time : {}".format(time.strftime("%a, %d %b %Y %H:%M:%S ",
-                                       time.localtime())))
+                                   time.localtime())))
 
+    nCoresL = [1,2,5,7,10,15,20] ## Cores used in OMP tasks
+    matrixSizeL = [2000,3000,5000,10000]
+    ## Run Tests ##
+    #for nCores in omp
+    cmd =  "export OMP_NUM_THREADS=10; ./src/matrix/matrix_multiply data/2000/A.txt data/2000/B.txt  data/2000/output" 
+    output = subprocess.getoutput(cmd)
+    runTime = parse_run_time(output) # Run time
+    print(runTime)
+
+    print("Run Time : {:.4f} h".format((time.time() - startTime)/3600.0))
 
 
 if __name__ == "__main__":

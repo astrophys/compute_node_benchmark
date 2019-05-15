@@ -13,6 +13,7 @@ MirrorURL: http://mirror.centos.org/centos-6/6/os/x86_64/
 #      sudo singularity build test.simg Singularity
 #      sudo chown user:group test.simg
 # Run : 
+#   0. Turn off multithreading
 #   1. singularity run --nv -H /home/group/user test.simg   ## Runs prebuilt tests
 #   2. singularity exec --nv -H /home/group/user test.simg  cmd  ## Runs cmd 
 #
@@ -43,7 +44,7 @@ Put Help here
 %runscript
     ######## Matrix Multiply ########
     # Do compilation of files
-    export OMP_NUM_THREADS=20
+    # export OMP_NUM_THREADS=20
     gcc -O3 -fopenmp -c src/matrix/matrix_multiply_omp_cache_optimized.c -o src/matrix/matrix_multiply_omp_cache_optimized.o
     gcc -O3 -fopenmp src/matrix_multiply_omp.o -o src/matrix_multiply 
 

@@ -3,3 +3,5 @@ test.simg
 *.o
 data
 matrix_multiply
+driver.log
+__pycache__

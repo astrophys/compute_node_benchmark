@@ -8,3 +8,4 @@ To Do:
 5. Check that AB_result.txt from numpy is same as from matrix_multiply
 6. Test non-cache optimized version
 7. Test lapack
+8. Add License

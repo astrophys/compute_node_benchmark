@@ -49,7 +49,7 @@ int map_idx(int i, int j, int Ny){
     FUTURE:
 *******************************************************/
 void exit_with_error(char * message){
-    fprintf(stderr, "%s", message);
+    fprintf(stderr, "%s\n", message);
     fflush(stderr);
     exit(1);
 }
@@ -350,16 +350,19 @@ float * omp_matrix_multiply(float * A, float * B, int * dimA, int * dimB, int * 
 
 /********************************************************
     ARGS:
+        At command line : 
+        matrix_multiply path/to/A.txt path/to/B.txt path/to/output/
     DESCRIPTION:
     RETURN:
     DEBUG:
     NOTES: 
     FUTURE:
 *******************************************************/
-int main(void)
+int main(int argc, char * argv[])
 {
     // Declare variables
     char path[100];
+    char errStr[500];
     int nDev = 0;       //Number of devices
     int * dimA = NULL;  
     int * dimB = NULL;  
@@ -375,17 +378,13 @@ int main(void)
     dimAB= (int *) malloc(2 * sizeof(int));
     printf("Running matrix_multiply_omp_cache_optimized.c ...\n");
 
-    //sprintf(path, "data/very_small/A.txt");
-    //sprintf(path, "data/large/A.txt");
-    sprintf(path, "data/very_large/A.txt");
-    A = read_numpy_matrix_row_majored(path, dimA);
-    //sprintf(path, "data/very_small/B.txt");
-    //sprintf(path, "data/large/B.txt");
-    sprintf(path, "data/very_large/B.txt");
-    B = read_numpy_matrix_row_majored(path, dimB);
+    //sprintf(path, "data/very_large/A.txt");
+    A = read_numpy_matrix_row_majored(argv[1], dimA);
+
+    //sprintf(path, "data/very_large/B.txt");
+    B = read_numpy_matrix_row_majored(argv[2], dimB);
     B = reorder_row_major_as_col_major(B, dimB);
 
-    // Try CUDA version of matrix_multiply
     dimAB[0] = dimA[0];
     dimAB[1] = dimB[1];
     //AB = cpu_matrix_multiply(A, B, dimA, dimB, dimAB);
@@ -395,7 +394,12 @@ int main(void)
     printf("Run time : %.3f s\n", difftime(time(NULL), start));
 
     // Output
-    fout = fopen("output/AB_result.txt", "w+");
+    sprintf(path, "%s/AB_result.txt", argv[3]);
+    fout = fopen(path, "w+");
+    if(fout == NULL){
+        sprintf(errStr, "ERROR!! Cannot create, %s\n", path);
+        exit_with_error(errStr);
+    }
     write_1D_array(AB, dimAB[0], dimAB[1], fout);
     fclose(fout);
 
@@ -405,7 +409,6 @@ int main(void)
     free(A);
     free(B);
     free(AB);
-
     return 0;
 }
 

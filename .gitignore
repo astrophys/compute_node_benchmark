@@ -1,3 +1,5 @@
 test.simg
 .*.swp
 *.o
+data
+matrix_multiply

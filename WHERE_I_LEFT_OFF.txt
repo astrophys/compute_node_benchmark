@@ -2,4 +2,9 @@ Did:
 
 To Do:
 1. Create driver function that calls and runs utilities. Aggregates run time
-2. 
+2. Install modern gcc like 7.0 or 8.0
+3. Figure out how to handle arbitrary number of cores in a machine for testing
+4. Add error checks matrix_multiply_omp_cache_optimized.c for CL args
+5. Check that AB_result.txt from numpy is same as from matrix_multiply
+6. Test non-cache optimized version
+7. Test lapack

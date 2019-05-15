@@ -31,6 +31,13 @@ def parse_run_time(String):
     """
     stringL = String.split("\n")
     time = None
+    # Report log of run
+    driverLogF = open("driver.log", "a")
+    driverLogF.write("\n\n\n\n##################################################\n")
+    driverLogF.write(String)
+    driverLogF.close()
+
+    # Parse
     for string in stringL:
         if("ERROR" in string):
             exit_with_error("{}\n".format(string))

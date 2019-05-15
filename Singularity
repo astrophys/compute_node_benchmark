@@ -35,6 +35,8 @@ Put Help here
 # This is additional packages on top of the base image from MirrorURL
 %post
     yum install python34
+    yum install python34-devel
+    yum install python34-setuptools
     yum install python34-libs
     yum install python34-numpy
     yum install python34-tools
@@ -77,12 +79,12 @@ Put Help here
     mv data/B.txt  data/5000
     mv data/A.txt  data/5000
 
-    echo "Creating 10000 10000 10000 10000 files"
-    mkdir -p data/10000/output
-    python3 src/matrix/matrix_generator.py 10000 10000 10000 10000
-    mv data/AB.txt data/10000
-    mv data/B.txt  data/10000
-    mv data/A.txt  data/10000
+    #echo "Creating 10000 10000 10000 10000 files"
+    #mkdir -p data/10000/output
+    #python3 src/matrix/matrix_generator.py 10000 10000 10000 10000
+    #mv data/AB.txt data/10000
+    #mv data/B.txt  data/10000
+    #mv data/A.txt  data/10000
 
     
     echo "I've been run"

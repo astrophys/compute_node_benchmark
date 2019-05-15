@@ -10,6 +10,7 @@
 #
 import time
 import sys
+import numpy as np
 import subprocess
 from error import exit_with_error
 from functions import parse_run_time
@@ -53,15 +54,39 @@ def main():
     startTime = time.time()
     print("Start Time : {}".format(time.strftime("%a, %d %b %Y %H:%M:%S ",
                                    time.localtime())))
+    print("Logging run output to driver.log\n\n")
+    ### Variables ###
+    ompNumThreadsL = [1,2,5,7,10,15,20]    ## Cores used in OMP tasks
+    matrixSizeL = [2000,3000,5000,10000]   ## outer dim of mats to run matrix_multiply on
+    nTrials     = 5                        ## number of trials to test,get stdev and mean
 
-    nCoresL = [1,2,5,7,10,15,20] ## Cores used in OMP tasks
-    matrixSizeL = [2000,3000,5000,10000]
-    ## Run Tests ##
-    #for nCores in omp
-    cmd =  "export OMP_NUM_THREADS=10; ./src/matrix/matrix_multiply data/2000/A.txt data/2000/B.txt  data/2000/output" 
-    output = subprocess.getoutput(cmd)
-    runTime = parse_run_time(output) # Run time
-    print(runTime)
+
+
+
+    ######## Run Tests ########
+    #for nCore in ompNumThreadsL:
+    print("matrix_multiply (cache optimized using OpenMP) : ")
+    print("--------------------------------------------------------")
+    print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
+          "stdev"))
+    print("--------------------------------------------------------")
+    for nThread in ompNumThreadsL: 
+        runTimeV = np.zeros([nTrials])
+        #nThread = 10
+        size=2000
+        for tIdx in range(nTrials):
+            cmd =  ("export OMP_NUM_THREADS={}; ./src/matrix/matrix_multiply "
+                    "data/{}/A.txt data/{}/B.txt  "
+                     "data/{}/output".format(nThread,size,size,size))
+            output = subprocess.getoutput(cmd)
+            runTime = parse_run_time(output) # Run time
+            runTimeV[tIdx]= runTime
+        print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
+              np.mean(runTimeV), np.std(runTimeV)))
+    print("--------------------------------------------------------")
+
+
+
 
     print("Run Time : {:.4f} h".format((time.time() - startTime)/3600.0))
 

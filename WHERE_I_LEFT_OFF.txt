@@ -10,3 +10,6 @@ To Do:
 7. Test lapack
 8. Add License
 9. Add test to try numpy
+10. Create options for driver function, e.g. 'all', 'mat_mult_cache_opt',
+    'build', 'mat_mult_non_cache_opt'
+11. Build data in /tmp b/c this is a bind point in Singularity

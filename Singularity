@@ -27,6 +27,7 @@ Put Help here
 
 ## Copy Files from outside of image to a place visible to image. Is Run before %post
 %files
+# Will need to use environmental variables to copy the code to 
 #/source /destination
 
 #%labels
@@ -48,6 +49,13 @@ Put Help here
     easy_install-3.4 --prefix /opt/python3.4 pip
     pip install --prefix /opt/python3.4 scipy
     
+    #### Do compilation of files ####
+    # Cache optimized 
+    gcc -O3 -fopenmp -c src/matrix/matrix_multiply_omp_cache_optimized.c -o src/matrix/matrix_multiply_omp_cache_optimized.o
+    gcc -O3 -fopenmp src/matrix/matrix_multiply_omp_cache_optimized.o -o src/matrix/matrix_multiply_cache_opt
+    # Non-Cache optimized 
+    gcc -O3 -fopenmp -c src/matrix/matrix_multiply_omp.o -o src/matrix/matrix_multiply_omp.c
+    gcc -O3 -fopenmp src/matrix/matrix_multiply_omp.o -o src/matrix/matrix_multiply_non_cache_opt
 
     echo "Hello from inside the container"
 
@@ -57,11 +65,7 @@ Put Help here
     # Set Environmental Variables
     export PYTHONPATH=/opt/python3.4/lib/python3.4/site-packages:$PYTHONPATH
 
-    # Do compilation of files
-    gcc -O3 -fopenmp -c src/matrix/matrix_multiply_omp_cache_optimized.c -o src/matrix/matrix_multiply_omp_cache_optimized.o
-    gcc -O3 -fopenmp src/matrix_multiply_omp.o -o src/matrix_multiply 
-
-    # Generate files to run
+    # Generate files to run - This won't work here b/c it will try to write files to a directory and recall Singularity images cannot modify themselves in runscript. Recall we can use SINGULARITYENV_PATH
     echo "Creating 2000 10000 10000 2000 files"
     mkdir -p data/2000/output
     python3 src/matrix/matrix_generator.py 2000 10000 10000 2000

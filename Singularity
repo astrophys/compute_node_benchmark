@@ -54,7 +54,7 @@ Put Help here
     gcc -O3 -fopenmp -c src/matrix/matrix_multiply_omp_cache_optimized.c -o src/matrix/matrix_multiply_omp_cache_optimized.o
     gcc -O3 -fopenmp src/matrix/matrix_multiply_omp_cache_optimized.o -o src/matrix/matrix_multiply_cache_opt
     # Non-Cache optimized 
-    gcc -O3 -fopenmp -c src/matrix/matrix_multiply_omp.o -o src/matrix/matrix_multiply_omp.c
+    gcc -O3 -fopenmp -c src/matrix/matrix_multiply_omp.c -o src/matrix/matrix_multiply_omp.o
     gcc -O3 -fopenmp src/matrix/matrix_multiply_omp.o -o src/matrix/matrix_multiply_non_cache_opt
 
     echo "Hello from inside the container"

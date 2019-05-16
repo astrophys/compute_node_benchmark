@@ -316,10 +316,11 @@ float * omp_matrix_multiply(float * A, float * B, int * dimA, int * dimB, int * 
     NOTES: 
     FUTURE:
 *******************************************************/
-int main(void)
+int main(int argc, char * argv[])
 {
     // Declare variables
     char path[100];
+    char errStr[500];
     int nDev = 0;      //Number of devices
     int * dimA = NULL; //{2,3};
     int * dimB = NULL; //{3,2};
@@ -342,84 +343,27 @@ int main(void)
     B = (float* )malloc(dimB[0] * dimB[1] * sizeof(float));
     
     printf("Running matrix_multiply_omp.c ...\n");
-    /*
-    int tid;
-    int nthreads;
-    int i = 0;
-    int j = 0;
-    //int longArray
-    #pragma omp parallel private(nthreads, tid) shared(i,j)
-    {
-        tid = omp_get_thread_num();
-        #pragma omp for
-        for(i=0; i<100; i++){
-            j = i*i;
-            printf("[%i, %i]: tid %i / %i\n", i, j, tid, omp_get_num_threads());
-        }
-        #pragma omp flush
 
-    }*/
-
-    // Simple test
-    // initialize_matrix(A,dimA,2);
-    // initialize_matrix(B,dimB,4);
-    // AB = omp_matrix_multiply(A, B, dimA, dimB, dimAB);
-
-    // Set my own values
-    A[map_idx(0,0,dimA[1])] = 1;
-    A[map_idx(0,1,dimA[1])] = 2;
-    A[map_idx(0,2,dimA[1])] = 3;
-    A[map_idx(1,0,dimA[1])] = 4;
-    A[map_idx(1,1,dimA[1])] = 5;
-    A[map_idx(1,2,dimA[1])] = 6;
-
-    B[map_idx(0,0,dimB[1])] = 7;
-    B[map_idx(0,1,dimB[1])] = 10;
-    B[map_idx(1,0,dimB[1])] = 8;
-    B[map_idx(1,1,dimB[1])] = 11;
-    B[map_idx(2,0,dimB[1])] = 9;
-    B[map_idx(2,1,dimB[1])] = 12;
-    
-    AB = omp_matrix_multiply(A, B, dimA, dimB, dimAB);
-
-    // Print matrices
-    printf("Multiplying Trivial Matrices\n");
-    printf("A (%i x %i):\n", dimA[0], dimA[1]);
-    print_1D_array(A, dimA[0], dimA[1]);
-    printf("B (%i x %i):\n", dimB[0], dimB[1]);
-    print_1D_array(B, dimB[0], dimB[1]);
-    printf("AB (%i x %i):\n", dimAB[0], dimAB[1]);
-    print_1D_array(AB, dimAB[0], dimAB[1]);
-    
-    // Read matrix files
-    free(A);
-    free(B);
-    free(AB);
-    //sprintf(path, "data/A_small.txt");
-    //sprintf(path, "data/large/A.txt");
     sprintf(path, "data/very_large/A.txt");
-    A = read_numpy_matrix(path, dimA);
-    //sprintf(path, "data/B_small.txt");
-    //sprintf(path, "data/large/B.txt");
+    A = read_numpy_matrix(argv[1], dimA);
     sprintf(path, "data/very_large/B.txt");
-    B = read_numpy_matrix(path, dimB);
-    //sprintf(path, "data/AB_small.txt");
-    //sprintf(path, "data/AB.txt");
-    //answer = read_numpy_matrix(path, dimAB);
-    //AB = cpu_matrix_multiply(A, B, dimA, dimB, dimAB);
-    //print_1D_array(AB, dimAB[0], dimAB[1]);
+    B = read_numpy_matrix(argv[2], dimB);
 
     // Try CUDA version of matrix_multiply
     dimAB[0] = dimA[0];
     dimAB[1] = dimB[1];
-    //AB = cpu_matrix_multiply(A, B, dimA, dimB, dimAB);
     fflush(stdout);
     time_t start = time(NULL);
     AB = omp_matrix_multiply(A, B, dimA, dimB, dimAB);
     printf("Run time : %.3f s\n", difftime(time(NULL), start));
 
     // Output
-    fout = fopen("output/AB_result.txt", "w+");
+    sprintf(path, "%s/AB_result.txt", argv[3]);
+    fout = fopen(path, "w+");
+    if(fout == NULL){
+        sprintf(errStr, "ERROR!! Cannot create, %s\n", path);
+        exit_with_error(errStr);
+    }
     write_1D_array(AB, dimAB[0], dimAB[1], fout);
     fclose(fout);
 

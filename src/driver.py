@@ -33,6 +33,7 @@ def print_help(Arg):
             "             = 'build_mat_mult_data'    : Builds matrix_multiply data \n"
             "             = 'mat_mult_cache_opt'     : Run matrix_multiply_cache_opt tests\n"
             "             = 'mat_mult_non_cache_opt' : Run matrix_multiply_cache_opt tests\n"
+            "             = 'local_memory_access'    : grep's a large file in temp\n"
             "   NOTE : Only one option can be passed at a time.\n"
             )
     sys.exit(Arg)
@@ -66,12 +67,35 @@ def main():
     matrixSizeL = [2000,3000,5000]   ## outer dim of mats to run matrix_multiply on
     nTrials     = 3                        ## number of trials to test,get stdev and mean
 
-
+    if(options != 'all' and options != 'mat_mult_cache_opt' and 
+       options != 'mat_mult_non_cache_opt' and options != 'local_memory_access' and
+       options != 'build_mat_mult_data' 
+    ):
+        exit_with_error("ERROR!!! {} is invalid option\n")
 
 
     ######## Run Tests ########
+    if(options == 'all' or options == 'build_mat_mult_data'):
+        nThread = 1
+        print("building data for matrix_multiply : ")
+        print("--------------------------------------------------------")
+        print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
+              "stdev"))
+        print("--------------------------------------------------------")
+        for size in matrixSizeL:
+            outDir = "data/{}".format(size)
+            runTimeV = np.zeros([nTrials])
+            for tIdx in range(nTrials):
+                cmd =  "python3 src/matrix/matrix_generator.py {} 1000 1000 {} {}".format(
+                       size, size, outDir)
+                output = subprocess.getoutput(cmd)
+                runTime = parse_run_time(output) # Run time
+                runTimeV[tIdx]= runTime
+            print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
+                      np.mean(runTimeV), np.std(runTimeV)))
+            print("--------------------------------------------------------")
+
     if(options == 'all' or options == 'mat_mult_cache_opt'):
-        #for nCore in ompNumThreadsL:
         print("matrix_multiply (cache optimized using OpenMP) : ")
         print("--------------------------------------------------------")
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
@@ -83,7 +107,7 @@ def main():
                 #nThread = 10
                 #size=2000
                 for tIdx in range(nTrials):
-                    cmd =  ("export OMP_NUM_THREADS={}; ./src/matrix/matrix_multiply_cache_opt"
+                    cmd =  ("export OMP_NUM_THREADS={}; ./src/matrix/matrix_multiply_cache_opt "
                             "data/{}/A.txt data/{}/B.txt  "
                              "data/{}/output".format(nThread,size,size,size))
                     output = subprocess.getoutput(cmd)
@@ -95,8 +119,7 @@ def main():
 
 
     if(options == 'all' or options == 'mat_mult_non_cache_opt'):
-        #for nCore in ompNumThreadsL:
-        print("matrix_multiply (cache optimized using OpenMP) : ")
+        print("matrix_multiply (non-cache optimized using OpenMP) : ")
         print("--------------------------------------------------------")
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))
@@ -108,7 +131,7 @@ def main():
                 #size=2000
                 for tIdx in range(nTrials):
                     cmd =  ("export OMP_NUM_THREADS={}; "
-                            "./src/matrix/matrix_multiply_non_cache_opt"
+                            "./src/matrix/matrix_multiply_non_cache_opt "
                             "data/{}/A.txt data/{}/B.txt  "
                              "data/{}/output".format(nThread,size,size,size))
                     output = subprocess.getoutput(cmd)

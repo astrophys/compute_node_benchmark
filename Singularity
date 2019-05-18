@@ -56,6 +56,8 @@ Put Help here
     # Non-Cache optimized 
     gcc -O3 -fopenmp -c src/matrix/matrix_multiply_omp.c -o src/matrix/matrix_multiply_omp.o
     gcc -O3 -fopenmp src/matrix/matrix_multiply_omp.o -o src/matrix/matrix_multiply_non_cache_opt
+    # Get genomics data
+    wget ftp.ensembl.org/pub/release-96/gtf/homo_sapiens
 
     echo "Hello from inside the container"
 
@@ -66,6 +68,7 @@ Put Help here
     export PYTHONPATH=/opt/python3.4/lib/python3.4/site-packages:$PYTHONPATH
 
     # Generate files to run - This won't work here b/c it will try to write files to a directory and recall Singularity images cannot modify themselves in runscript. Recall we can use SINGULARITYENV_PATH
+    ## I think python3 src/driver.py all will replace below code - be sure it writes, reads, and cleans up tmp 
     echo "Creating 2000 10000 10000 2000 files"
     mkdir -p data/2000/output
     python3 src/matrix/matrix_generator.py 2000 10000 10000 2000

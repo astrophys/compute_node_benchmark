@@ -8,5 +8,7 @@ To Do:
 5. Check that AB_result.txt from numpy is same as from matrix_multiply
 7. Test lapack
 8. Add License
-9. Add test to try numpy
 11. Build data in /tmp b/c this is a bind point in Singularity
+12. Fix / get simulate_fastq working
+    a) Randomly sample quality space from probability distribution function
+13. Add file access time on /dev/shm

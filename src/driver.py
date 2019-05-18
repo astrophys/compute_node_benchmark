@@ -86,7 +86,7 @@ def main():
             outDir = "data/{}".format(size)
             runTimeV = np.zeros([nTrials])
             for tIdx in range(nTrials):
-                cmd =  "python3 src/matrix/matrix_generator.py {} 1000 1000 {} {}".format(
+                cmd =  "python3 src/matrix/matrix_generator.py {} 10000 10000 {} {}".format(
                        size, size, outDir)
                 output = subprocess.getoutput(cmd)
                 runTime = parse_run_time(output) # Run time
@@ -94,6 +94,7 @@ def main():
             print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
                       np.mean(runTimeV), np.std(runTimeV)))
             print("--------------------------------------------------------")
+
 
     if(options == 'all' or options == 'mat_mult_cache_opt'):
         print("matrix_multiply (cache optimized using OpenMP) : ")

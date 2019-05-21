@@ -57,7 +57,8 @@ Put Help here
     gcc -O3 -fopenmp -c src/matrix/matrix_multiply_omp.c -o src/matrix/matrix_multiply_omp.o
     gcc -O3 -fopenmp src/matrix/matrix_multiply_omp.o -o src/matrix/matrix_multiply_non_cache_opt
     # Get genomics data
-    wget ftp.ensembl.org/pub/release-96/gtf/homo_sapiens
+    wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-96/gtf/homo_sapiens/Homo_sapiens.GRCh38.96.gtf.gz
+    wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-96/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
 
     echo "Hello from inside the container"
 

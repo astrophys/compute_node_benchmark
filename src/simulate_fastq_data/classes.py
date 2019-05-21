@@ -5,6 +5,7 @@ import random
 import copy
 import operator
 import numpy
+from error import exit_with_error
 #********************************************************************************
 #********************************************************************************
 #*******************************  CLASSES  **************************************
@@ -22,7 +23,8 @@ class GTF_ENTRY:
     http://www.gencodegenes.org/gencodeformat.html
     """
     def __init__(self, Chromosome = None, Source = None, EntryType= None, Start = None,
-                 Stop = None, Score = None, Strand = None, Frame = None, Attribute = None):
+                 Stop = None, Score = None, Strand = None, Frame = None,
+                 Attribute = None):
         """
         ARGS:
             Chromosome  : Chromosome, can only be 1,2,...,X,Y
@@ -68,50 +70,40 @@ class GTF_ENTRY:
         if(Chromosome is not None):
             self.chrm = Chromosome
         else:
-            sys.stderr.write("ERROR! Chromosome not specified!\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Chromosome not specified!\n")
         if(Source is not None):
             self.src = Source
         else:
-            sys.stderr.write("ERROR! Source not specified!\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Source not specified!\n")
         if(EntryType is not None):
             self.etype = EntryType
         else:
-            sys.stderr.write("ERROR! EntryType not specified!\n")
-            sys.exit(1)
+            exit_with_error("ERROR! EntryType not specified!\n")
         if(Start is not None):
             self.start = int(Start)
         else:
-            sys.stderr.write("ERROR! Start not specified!\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Start not specified!\n")
         if(Stop is not None):
             self.stop = int(Stop)
         else:
-            sys.stderr.write("ERROR! Stop not specified!\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Stop not specified!\n")
         if(Score is not None):
             self.score = Score
             # Check for empty field
             if(self.score != '.'):
-                sys.stderr.write("ERROR! Score = %s. Expected empty field\n"%(self.score))
-                sys.exit(1)
+                exit_with_error("ERROR! Score = %s. Expected empty field\n"%(self.score))
         else:
-            sys.stderr.write("ERROR! Score not specified!\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Score not specified!\n")
         if(Strand is not None):
             self.strand = Strand
             if(self.strand != '+' and self.strand != '-'):
-                sys.stderr.write("ERROR! Strand = %s, wrong format\n"%(self.strand))
-                sys.exit(1)
+                exit_with_error("ERROR! Strand = %s, wrong format\n"%(self.strand))
         else:
-            sys.stderr.write("ERROR! Strand not specified!\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Strand not specified!\n")
         if(Frame is not None):
             self.frame = Frame
         else:
-            sys.stderr.write("ERROR! Frame not specified!\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Frame not specified!\n")
         if(Attribute is not None):
             self.attribute = Attribute.split("\n")[0]
 
@@ -139,8 +131,7 @@ class GTF_ENTRY:
             try:  self.biotype  = attributeDict["gene_biotype"]
             except KeyError:  pass
         else:
-            sys.stderr.write("ERROR! Attribute not specified!\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Attribute not specified!\n")
 
 
     def print_entry(self):
@@ -150,7 +141,8 @@ class GTF_ENTRY:
 
 
 class FASTQ_READ:
-    def __init__(self, Transcript = None, Insert = None, ReadLength = None, MetaData = None, exonList = None, R1_R2 = None):
+    def __init__(self, Transcript = None, Insert = None, ReadLength = None, MetaData = None,
+                 exonList = None, R1_R2 = None):
         """
         ARGS:
             Transcript = a TRANSCRIPT instance
@@ -196,15 +188,13 @@ class FASTQ_READ:
 
         # type check 
         if(not isinstance(Insert, INSERT)):
-            sys.stderr.write("ERROR! Insert is not of class type INSERT\n")
-            sys.exit(1) 
+            exit_with_error("ERROR! Insert is not of class type INSERT\n")
 
         if(ReadLength is not None):
             # ReadLength = int(ReadLength)
             self.readlen = ReadLength
         else:
-            sys.stderr.write("ERROR! ReadLength not specified!\n")
-            sys.exit(1)
+            exit_with_error("ERROR! ReadLength not specified!\n")
 
         self.get_qual()
         # Currently, reads are forced to be completely contained within
@@ -285,16 +275,14 @@ class FASTQ_READ:
                 #sys.stderr.write("\texonsSpanned: %i\tcurTransPos: %i\n"%(len(exonsSpanned),curTransPos))
 
             if(len(exonsSpanned) == 0):
-                sys.stderr.write("ERROR! Read does _not_ span any exons!\n")
-                sys.exit(1)
+                exit_with_error("ERROR! Read does _not_ span any exons!\n")
 
             exonsSpanned = list(set(exonsSpanned))
             self.metadata = "%s:trans:%s:start:%i:exons"%(MetaData, Transcript.transID, startWrtGenome)
             for exonName in exonsSpanned:
                 self.metadata = "%s:%s"%(self.metadata, exonName)
         else:
-            sys.stderr.write("ERROR! MetaData not specified!\n")
-            sys.exit(1)
+            exit_with_error("ERROR! MetaData not specified!\n")
 
 
 
@@ -350,13 +338,11 @@ class CHROMOSOME:
         if(Chromosome is not None):
             self.chrm = Chromosome
         else:
-            sys.stderr.write("ERROR! Chromosome is not specified!\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Chromosome is not specified!\n")
         if(Sequence is not None):
             self.seq = Sequence
         else:
-            sys.stderr.write("ERROR! Sequence is not specified!\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Sequence is not specified!\n")
 
 
 
@@ -388,39 +374,32 @@ class GENE:
         
         # type check
         if(not isinstance(GtfEntry, GTF_ENTRY)):
-            sys.stderr.write("ERROR! GtfEntry is not of class type GTF_ENTRY\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry is not of class type GTF_ENTRY\n")
 
         if(GtfEntry.chrm is not None):
             self.chrm = GtfEntry.chrm
         else:
-            sys.stderr.write("ERROR! GtfEntry.chrm is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.chrm is None\n")
         if(GtfEntry.start is not None):
             self.start = int(GtfEntry.start)
         else:
-            sys.stderr.write("ERROR! GtfEntry.start is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.start is None\n")
         if(GtfEntry.stop is not None):
             self.stop = int(GtfEntry.stop)
         else:
-            sys.stderr.write("ERROR! GtfEntry.stop is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.stop is None\n")
         if(GtfEntry.strand is not None):
             self.strand = GtfEntry.strand
         else:
-            sys.stderr.write("ERROR! GtfEntry.strand is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.strand is None\n")
         if(GtfEntry.geneID is not None):
             self.geneID = GtfEntry.geneID
         else:
-            sys.stderr.write("ERROR! GtfEntry.geneID is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.geneID is None\n")
         if(GtfEntry.geneName is not None):
             self.geneName = GtfEntry.geneName
         else:
-            sys.stderr.write("ERROR! GtfEntry.geneName is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.geneName is None\n")
 
         # Get all the exons and their indices associated with this transcript
         # This is _HIGHLY_ inefficient. Scales as O(N**2)
@@ -461,40 +440,34 @@ class TRANSCRIPT:
 
         # type check
         if(not isinstance(GtfEntry, GTF_ENTRY)):
-            sys.stderr.write("ERROR! GtfEntry is not of class type GTF_ENTRY\n")
-            sys.exit(1)
+            import pdb; pdb.set_trace()
+            exit_with_error("ERROR! GtfEntry is not of class type GTF_ENTRY\n")
 
         if(GtfEntry.chrm is not None):
             self.chrm = GtfEntry.chrm
         else:
-            sys.stderr.write("ERROR! GtfEntry.chrm is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.chrm is None\n")
         if(GtfEntry.start is not None):
             self.start = int(GtfEntry.start)
         else:
-            sys.stderr.write("ERROR! GtfEntry.start is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.start is None\n")
         if(GtfEntry.stop is not None):
             self.stop = int(GtfEntry.stop)
         else:
-            sys.stderr.write("ERROR! GtfEntry.stop is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.stop is None\n")
         if(GtfEntry.strand is not None):
             self.strand = GtfEntry.strand
         else:
-            sys.stderr.write("ERROR! GtfEntry.strand is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.strand is None\n")
         if(GtfEntry.geneID is not None):
             self.geneID = GtfEntry.geneID
         else:
-            sys.stderr.write("ERROR! GtfEntry.geneID is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.geneID is None\n")
         if(GtfEntry.transID is not None):
             self.transID = GtfEntry.transID
             self.transNum = self.transID[4:]
         else     :
-            sys.stderr.write("ERROR! GtfEntry.transcriptID is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.transcriptID is None\n")
 
 
 class INSERT:
@@ -529,30 +502,25 @@ class INSERT:
 
         # type check
         if(not isinstance(Transcript, TRANSCRIPT)):
-            sys.stderr.write("ERROR! Transcript is not of class type TRANSCRIPT 2\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Transcript is not of class type TRANSCRIPT 2\n")
 
         if(Transcript.chrm is not None):
             self.chrm = Transcript.chrm
         else:
-            sys.stderr.write("ERROR! Transcript.chrm is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Transcript.chrm is None\n")
         if(Transcript.strand is not None):
             self.strand = Transcript.strand
         else:
-            sys.stderr.write("ERROR! Transcript.strand is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Transcript.strand is None\n")
         if(Transcript.geneID is not None):
             self.geneID = Transcript.geneID
         else:
-            sys.stderr.write("ERROR! Transcript.geneID is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Transcript.geneID is None\n")
         if(Transcript.transID is not None):
             self.transID = Transcript.transID
             self.transNum = self.transID[4:]
         else:
-            sys.stderr.write("ERROR! Transcript.transcriptID is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Transcript.transcriptID is None\n")
 
         # get the sequence of the insert
         self.seq = Transcript.seq[start:stop]
@@ -586,50 +554,41 @@ class EXON:
         self.transID = None  # str, nominal transcript ID, may belong to mult. trans.
 
         # type check
-        if(type(GtfEntry) is GTF_ENTRY):
-            sys.stderr.write("ERROR! GtfEntry is not of class type GTF_ENTRY\n")
-            sys.exit(1)
+        if(not isinstance(GtfEntry, GTF_ENTRY)):
+            exit_with_error("ERROR! GtfEntry is not of class type GTF_ENTRY\n")
             
         if(GtfEntry.chrm is not None):
             self.chrm = GtfEntry.chrm
         else:
-            sys.stderr.write("ERROR! GtfEntry.chrm is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.chrm is None\n")
         if(GtfEntry.start is not None):
             self.start = int(GtfEntry.start)
         else:
-            sys.stderr.write("ERROR! GtfEntry.start is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.start is None\n")
         if(GtfEntry.stop is not None):
             self.stop = int(GtfEntry.stop)
         else:
-            sys.stderr.write("ERROR! GtfEntry.stop is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.stop is None\n")
         if(GtfEntry.strand is not None):
             self.strand = GtfEntry.strand
         else:
-            sys.stderr.write("ERROR! GtfEntry.strand is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.strand is None\n")
         if(GtfEntry.exonNum is not None):
             self.exonNum = GtfEntry.exonNum
         else:
-            sys.stderr.write("ERROR! GtfEntry.exonNum is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.exonNum is None\n")
         if(GtfEntry.exonID is not None):
             self.exonID = GtfEntry.exonID
         else:
-            sys.stderr.write("ERROR! GtfEntry.exonID is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.exonID is None\n")
         if(GtfEntry.geneID is not None):
             self.geneID = GtfEntry.geneID
         else:
-            sys.stderr.write("ERROR! GtfEntry.geneID is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.geneID is None\n")
         if(GtfEntry.transID is not None):
             self.transID = GtfEntry.transID
         else:
-            sys.stderr.write("ERROR! GtfEntry.transcriptID is None\n")
-            sys.exit(1)
+            exit_with_error("ERROR! GtfEntry.transcriptID is None\n")
             
 
 
@@ -668,8 +627,7 @@ def reverse_complement(seq):
             continue
 
         if(char not in "ATCGN"):
-            sys.stderr.write("ERROR! char %s is not a valid sequencing character!\n"%(char))
-            sys.exit(1)
+            exit_with_error("ERROR! char %s is not a valid sequencing character!\n"%(char))
     # Revese
     rcSeq = rcSeq[::-1]
     return rcSeq

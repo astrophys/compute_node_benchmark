@@ -75,14 +75,16 @@ from functions import create_fastq_file
 
 def print_help():
     """This prints the Help"""
-    print("\nUSAGE: ./simulate_fastq.py pathToGtf pathToSequenc pathToConfig numReads pathToFastq\n"
+    print("\nUSAGE: ./simulate_fastq.py pathToGtf pathToSequenc pathToConfig numReads pathToFastq readType\n"
             "pathToGtf      = Path to the _ensembl_ GTF file\n"
             "pathToSequence = Path to the _ensembl_ whole genome file, fasta format\n"
             "pathToConfig   = Configuration file. Comment lines begin with '#'.\n"
             "                 contains list of transcripts and their relative abundance \n"
             "                 (an integer) and a line with ReadLength\n"
             "numReads       = the number of reads generated\n"
-            "pathToFastq    = the output file name prefix")
+            "pathToFastq    = the output file name prefix\n"
+            "readType       = either : single, paired-fr, paired-rf"
+    )
 
 
 
@@ -94,7 +96,7 @@ def print_help():
 #********************************************************************************
 def main():
     timeBegin = datetime.datetime.now()
-    if(len(sys.argv) != 6):
+    if(len(sys.argv) != 7):
         if(len(sys.argv) > 1 and (sys.argv[1] == "--help" or sys.argv[1] == "-h")):
             print_help()
             sys.exit(0)
@@ -107,6 +109,7 @@ def main():
     pathToSeq = sys.argv[2]
     pathToConfig = sys.argv[3]
     pathToFastq = sys.argv[5]
+    readType  = sys.argv[6]
 
     gtfList   = read_gtf(pathToGtf)
     exonList  = get_exon_list(gtfList)
@@ -126,10 +129,10 @@ def main():
 
     numOfReads = int(sys.argv[4])
 
-    for i in range(0,100):
-        pathToFastq_2 = pathToFastq + "-" + str(i) + "-1to1"
-        random.seed()
-        create_fastq_file(pathToFastq_2, desiredTransList, abundanceList, numOfReads, readLength,
+    #for i in range(0,100):
+    pathToFastq_2 = pathToFastq + "-1to1"
+    #    random.seed()
+    create_fastq_file(pathToFastq_2, desiredTransList, abundanceList, numOfReads, readLength,
                       transDict, transList, exonList)
        
 

@@ -1,7 +1,18 @@
 Did:
+1. simulate_fastq/simulate_fastq.py : 
+    a) Added readType option 
+    b) Removed loop generating many files in simulate_fastq.py data
+2. Added error.py to simulate_fastq/
+3. simulate_fastq/functions.py 
+    a) Replaced sys.stderr.write(); sys.exit() with exit_with_error()
+4. simulate_fastq/classes.py 
+    a) In EXON class, changed 
+       if(type(GtfEntry) is GTF_ENTRY) 
+               to 
+       if(not isinstance(GtfEntry, GTF_ENTRY))
+       Q. How did this ever work?
 
 To Do:
-1. Create driver function that calls and runs utilities. Aggregates run time
 2. Install modern gcc like 7.0 or 8.0
 3. Figure out how to handle arbitrary number of cores in a machine for testing
 4. Add error checks matrix_multiply_omp_cache_optimized.c for CL args
@@ -9,6 +20,11 @@ To Do:
 7. Test lapack
 8. Add License
 11. Build data in /tmp b/c this is a bind point in Singularity
-12. Fix / get simulate_fastq working
+12. simulate_fastq : 
     a) Randomly sample quality space from probability distribution function
+    b) Add switch for single end vs. paired end reads (include --fr, --rf and unstranded). In
+       FASTQ_READ()
+       --> See functions.py : 924
+       --> See : http://onetipperday.sterding.com/2012/07/how-to-tell-which-library-type-to-use.html
+    c) Add CL or config variable for mu and sigma for insert length
 13. Add file access time on /dev/shm

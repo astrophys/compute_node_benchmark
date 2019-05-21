@@ -13,6 +13,7 @@ from classes import TRANSCRIPT
 from classes import INSERT
 from classes import EXON
 from classes import reverse_complement
+from error import exit_with_error
 
 
 #********************************************************************************
@@ -37,8 +38,7 @@ def read_gtf(PathToGtf = None):
     FUTURE: 
     """
     if(PathToGtf[-3:] != "gtf"):
-        sys.stderr.write("ERROR! You did not pass a file with the .gtf extention\n")
-        sys.exit(1)
+        exit_with_error("ERROR! You did not pass a file with the .gtf extention\n")
 
     gtfFile = open(PathToGtf, 'r')
     gtfList = []
@@ -250,8 +250,7 @@ def get_exon_seq(exonList, chrmList):
                 elif(exon.strand == '-'):
                     exon.seq = reverse_complement(chrm.seq[start:end])
                 else:
-                    sys.stderr.write("ERROR! strand char = %s is invalid", exon.strand)
-                    sys.exit(1)
+                    exit_with_error("ERROR! strand char = %s is invalid", exon.strand)
     timeEnd = datetime.datetime.now()
     print("get_exon_seq()  run time = %s"%(timeEnd - timeBegin))
     
@@ -674,8 +673,7 @@ def read_config(pathToConfig):
 
         # Check for tabs, only spaces permitted
         if(re.search('\t',line)):
-            sys.stderr.write("ERROR! Tabs not permitted in config file!\n")
-            sys.exit(1)
+            exit_with_error("ERROR! Tabs not permitted in config file!\n")
         line = line.split(" ")
 
         # ReadLength
@@ -684,8 +682,7 @@ def read_config(pathToConfig):
                 readLength = int(line[1])
                 continue
             else:
-                sys.stderr.write("ERROR! multiple instances of ReadLength in config file\n")
-                sys.exit(1)
+                exit_with_error("ERROR! multiple instances of ReadLength in config file\n")
 
         # NumberOfReads
         if(line[0] == "NumberOfReads"):
@@ -693,8 +690,7 @@ def read_config(pathToConfig):
                 numOfReads = int(line[1])
                 continue
             else:
-                sys.stderr.write("ERROR! multiple instances of ReadLength in config file\n")
-                sys.exit(1)
+                exit_with_error("ERROR! multiple instances of ReadLength in config file\n")
         
         # Transcripts
         if(re.search('ENST', line[0])):
@@ -706,8 +702,7 @@ def read_config(pathToConfig):
             sys.exit(1)
             
     if(readLength == 0 or numOfReads == 0):
-        sys.stderr.write("ERROR! ReadLength or NumberOfReads not specified in config.txt\n")
-        sys.exit(1)
+        exit_with_error("ERROR! ReadLength or NumberOfReads not specified in config.txt\n")
 
     print("Config File Parameters : \nReadLength : %i\nNumberOfReads : %i"%(readLength, numOfReads))
     i = 0
@@ -810,8 +805,7 @@ def create_insert(Transcript, readLength, mu, sigma):
 
     # type check
     if(not isinstance(Transcript, TRANSCRIPT)):
-        sys.stderr.write("ERROR! Transcript is not of class type TRANSCRIPT 1\n")
-        sys.exit(1)
+        exit_with_error("ERROR! Transcript is not of class type TRANSCRIPT 1\n")
 
     insertLength = 0
 
@@ -829,8 +823,8 @@ def create_insert(Transcript, readLength, mu, sigma):
     return insert
 
 
-def create_fastq_file(pathToFastq, desiredTransList, abundanceList, numOfReads, readLength,
-                      transDict, transList, exonList):
+def create_fastq_file(pathToFastq, desiredTransList, abundanceList, numOfReads,
+                      readLength, transDict, transList, exonList):
     """
     ARGS:
         pathToFastq      : Path to output fastq file
@@ -894,7 +888,7 @@ def create_fastq_file(pathToFastq, desiredTransList, abundanceList, numOfReads, 
         Include more error checking for goofy parameters, e.g. not enough reads for
         the ratios, etc.
     """
-
+    import pdb; pdb.set_trace()
     pathToFastqR1 = pathToFastq + "-R1.fq"
     pathToFastqR2 = pathToFastq + "-R2.fq"
     fastqFileR1 = open(pathToFastqR1, "w+")
@@ -917,8 +911,7 @@ def create_fastq_file(pathToFastq, desiredTransList, abundanceList, numOfReads, 
         try:
             trans = transList[transDict[transName]]
         except KeyError:
-            sys.stderr.write("ERROR! %s is not a transcript annotated in your gtf file\n"%(transName))
-            sys.exit(1)
+            exit_with_error("ERROR! %s is not a transcript annotated in your gtf file\n"%(transName))
         for i in range( int(float(abundanceList[transIdx]) / float(abundanceSum) * numOfReads)):
             insert = create_insert (trans, readLength, 150, 15 )
             fastqEntry = FASTQ_READ(trans, insert, readLength, "@Read_num:%i"%(readIdx), exonList, "R1")

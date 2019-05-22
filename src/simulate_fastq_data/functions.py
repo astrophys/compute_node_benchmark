@@ -784,15 +784,18 @@ def print_transcripts_with_seqs(transList):
     outFile.close()
     
 
-def create_insert(Transcript, readLength, mu, sigma):
+def create_insert(Transcript = None, ReadLength = None, Mu = None, Sigma = None,
+                  ExonList = None):
     """
     ARGS:
-        Transcript = a TRANSCRIPT instance
-        mu = the mean of fragment length distribution
-        sigma = the standard deviation of fragment length distribution
+        Transcript : a TRANSCRIPT instance
+        ReadLength : length of reads. Different from insert length
+        Mu         : the mean of fragment length distribution
+        Sigma      : the standard deviation of fragment length distribution
+        ExonList   : 
 
     RETURN:
-        AN INSERT of length n, where n fall in a distribution of rnorm(mu,sigma)
+        AN INSERT of length n, where n fall in a distribution of rnorm(Mu,sigma)
 
     DESCRIPTION:
 
@@ -811,13 +814,18 @@ def create_insert(Transcript, readLength, mu, sigma):
 
     insertLength = 0
 
-    while ( insertLength < readLength ):
+    # Ensure inserts are at least as long as the readlength
+    while(insertLength < ReadLength):
         start = random.randint (0, transLength -1 )    
-        stop = start + int (numpy.random.normal(mu, sigma))
+        stop = start + int(numpy.random.normal(Mu, Sigma))
         if (stop > transLength - 1):
-            insert = INSERT(Transcript, start, transLength-1)
+            insert = INSERT(Transcript = Transcript, StartWrtTrans = start,
+                            StopWrtTrans = transLength-1, ReadLength = ReadLength, 
+                            ExonList = ExonList)
         else:  
-            insert = INSERT(Transcript, start, stop)
+            insert = INSERT(Transcript = Transcript, StartWrtTrans = start,
+                            StopWrtTrans = stop, ReadLength = ReadLength, 
+                            ExonList = ExonList)
         insertLength = len(insert.seq)        
 
     timeEnd = datetime.datetime.now()
@@ -927,7 +935,7 @@ def create_fastq_file(pathToFastq, desiredTransList, abundanceList, nReads,
                             "gtf file\n".format(transName))
 
         for i in range(int(float(abundanceList[transIdx])/float(abundanceSum) * nReads)):
-            insert = create_insert(trans, readLength, 150, 15)
+            insert = create_insert(trans, readLength, 150, 15, exonList)
 
 
             if(readType == 'single'):

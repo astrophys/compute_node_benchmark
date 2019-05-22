@@ -195,10 +195,6 @@ class FASTQ_READ:
         self.readDirection  = Direction   # whether the fastq read is forward / reverse comp
         self.start  = 0      # coord wrt to chromosome start (gtf start def this way)
         self.stop   = 0      # coord wrt to chromosome stop (gtf stop def this way)
-        exonsSpannedL = []   # List of exons spanned by read
-        startWrtChr = 0      # coord wrt to chromosome start (gtf start def this way)
-        stopWrtChr  = 0      # coord wrt to chromosome stop (gtf stop def this way)
-        posWrtTrans = 0      # current transcipt coordinate position.
 
         # type check 
         if(not isinstance(Insert, INSERT)):
@@ -221,14 +217,16 @@ class FASTQ_READ:
         if(self.readDirection == "forward"):
             self.seq = Insert.seq[0:ReadLength]
             # start / stop are _inclusive_
-            self.start = Insert.start
-            self.stop  = Insert.start + ReadLength - 1 # -1 keeps len == ReadLength
+            self.start = Insert.r1Start
+            self.stop  = Insert.r1Stop  
+            exonsSpannedL = Insert.r1ExonL
         elif(self.readDirection == "reverse"):
             seqLen = len (Insert.seq)
             self.seq = reverse_complement(Insert.seq[seqLen-ReadLength:seqLen])
             # start / stop are _inclusive_
-            self.start = Insert.stop
-            self.stop  = Insert.stop - ReadLength + 1  # +1 keeps len == ReadLength
+            self.start = Insert.r2Start
+            self.stop  = Insert.r2Stop
+            exonsSpannedL = Insert.r2ExonL
         else:
             exit_with_error("ERROR!!! {} is invalid".format(self.readDirection))
 
@@ -239,54 +237,54 @@ class FASTQ_READ:
         if(MetaData is None):
             exit_with_error("ERROR! MetaData not specified!\n")
 
-        readExonL = []
+        #readExonL = []
         #posWrtTrans  = 0        # Find exon start pos w/r/t trans start
 
         # Sort exons spanned by the transcript the insert is probing
-        exonL = [ExonList[idx] for idx in Insert.transcript.exonIdxList]
-        exonL = sorted(exonL, key=operator.attrgetter('start'))
+        #exonL = [ExonList[idx] for idx in Insert.transcript.exonIdxList]
+        #exonL = sorted(exonL, key=operator.attrgetter('start'))
 
         # Get exons spanned by read.
-        for exon in exonL:
-            if(self.readDirection == "forward"):
-                # Read starts on exon
-                if(self.start >= exon.start and self.start <= exon.stop):
-                    exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
-                                       exon.start, exon.stop))
-                    continue
-                # Read spans entire exon
-                if(self.start <= exon.start and self.stop >= exon.stop):
-                    exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
-                                       exon.start, exon.stop))
-                    continue
-                # Read ends on exon
-                if(self.stop >= exon.start and self.stop <= exon.stop):
-                    exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
-                                       exon.start, exon.stop))
-                    continue
-                
-            ### Recall that exon.start / exon.stop have no direction info embedded
-            elif(self.readDirection == "reverse"):
-                exit_with_error("ERROR!!! 'reverse' is untested!")
-                # Read starts on exon
-                if(self.start >= exon.stop and self.start <= exon.stop):
-                    exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
-                                       exon.start, exon.stop))
-                    continue
-                # Read spans entire exon
-                if(self.start <= exon.stop and self.start>= exon.stop):
-                    exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
-                                       exon.start, exon.stop))
-                    continue
-                # Read ends on exon
-                if(self.stop >= exon.stop and self.start <= exon.stop):
-                    exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
-                                       exon.start, exon.stop))
-                    continue
+        #for exon in Insert.exonL:
+        #    if(self.readDirection == "forward"):
+        #        # Read starts on exon
+        #        if(self.start >= exon.start and self.start <= exon.stop):
+        #            exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
+        #                               exon.start, exon.stop))
+        #            continue
+        #        # Read spans entire exon
+        #        if(self.start <= exon.start and self.stop >= exon.stop):
+        #            exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
+        #                               exon.start, exon.stop))
+        #            continue
+        #        # Read ends on exon
+        #        if(self.stop >= exon.start and self.stop <= exon.stop):
+        #            exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
+        #                               exon.start, exon.stop))
+        #            continue
+        #        
+        #    ### Recall that exon.start / exon.stop have no direction info embedded
+        #    elif(self.readDirection == "reverse"):
+        #        exit_with_error("ERROR!!! 'reverse' is untested!")
+        #        # Read starts on exon
+        #        if(self.start >= exon.stop and self.start <= exon.stop):
+        #            exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
+        #                               exon.start, exon.stop))
+        #            continue
+        #        # Read spans entire exon
+        #        if(self.start <= exon.stop and self.start>= exon.stop):
+        #            exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
+        #                               exon.start, exon.stop))
+        #            continue
+        #        # Read ends on exon
+        #        if(self.stop >= exon.stop and self.start <= exon.stop):
+        #            exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
+        #                               exon.start, exon.stop))
+        #            continue
 
-            else:
-                exit_with_error("ERROR!!! {} direction is invalid\n".format(
-                                self.readDirection))
+        #    else:
+        #        exit_with_error("ERROR!!! {} direction is invalid\n".format(
+        #                        self.readDirection))
             ### below trans coords are 0 indexed, and the coords are _inclusive_
             ##exon = ExonList[exonIdx]                # get actual EXON instance
             ##exonLen = len(exon.seq)
@@ -341,14 +339,15 @@ class FASTQ_READ:
             ###sys.stderr.write("\texonsSpanned: %i\tposWrtTrans: %i\n"%(
             ###                 len(exonsSpanned),posWrtTrans))
 
-        if(len(exonsSpannedL) == 0):
-            exit_with_error("ERROR! Read does _not_ span any exons!\n")
+        #if(len(exonsSpannedL) == 0):
+        #    exit_with_error("ERROR! Read does _not_ span any exons!\n")
 
         #exonsSpannedL = list(set(exonsSpannedL))
-        self.metadata = "%s:trans:%s:start:%i:exons"%(MetaData, Transcript.transID,
-                        startWrtChr)
-        for exonName in exonsSpannedL:
-            self.metadata = "%s:%s"%(self.metadata, exonName)
+        self.metadata = "%s:trans:%s:start:%i:exons"%(MetaData,Insert.transcript.transID,
+                        self.start)
+        for exon in exonsSpannedL:
+            self.metadata = "{}:{}:{}:{}".format(self.metadata, exon.exonID,
+                            exon.start, exon.stop)
 
 
 
@@ -536,7 +535,8 @@ class TRANSCRIPT:
 
 
 class INSERT:
-    def __init__(self, Transcript = None, start = 0, stop = 0):
+    def __init__(self, Transcript = None, StartWrtTrans = 0, StopWrtTrans = 0,
+                 ReadLength = 0, ExonList = None):
         """
         ARGS:
             Transcript = a TRANSCRIPT instance
@@ -553,16 +553,12 @@ class INSERT:
         """
         self.seq    = None        # str, sequence
         self.chrm   = None        # str, Chromosome
-        self.startWrtTrans= start # int, Start position w/r/t transcript (starts from 0)
-        self.stopWrtTrans = stop  # int, End position w/r/t transcript
-        self.start  = Transcript.start + start# int, start position w/r/t the chromosome
-        self.stop   = Transcript.start + stop # int, start position w/r/t the chromosome
+        self.start  = -1          # int, start position w/r/t the chromosome
+        self.stop   = -1          # int, start position w/r/t the chromosome
         self.strand = None        # str, '+' (forward) or '-' (reverse)
         self.geneID = None        # str, nominal geneID, but may belong to multiple genes
-        self.transID = None       # str, nominal transcript ID, may belong to mult. trans.
+        self.transID = None       # str, nominal transID, may belong to mult. trans.
         self.transNum= None       # str, only number portion of transID for sorting by transcript num
-
-
         # type check
         if(not isinstance(Transcript, TRANSCRIPT)):
             exit_with_error("ERROR! Transcript is not of class type TRANSCRIPT 2\n")
@@ -588,9 +584,85 @@ class INSERT:
             exit_with_error("ERROR! Transcript.transcriptID is None\n")
 
         # get the sequence of the insert
-        self.seq = Transcript.seq[start:stop]
+        self.seq = Transcript.seq[StartWrtTrans:StopWrtTrans]
 
-        # get the start and stop position relative to the chromosome
+        # get the start and stop position of insert and associated reads (1 and 2)
+        # relative to the chromosome. May discard read 2 if single end
+        transPos= 0
+        insertStart = 0
+        insertStop  = 0
+        exonL = [ExonList[idx] for idx in self.transcript.exonIdxList]
+        exonL = sorted(exonL, key=operator.attrgetter('start'))
+        exonSpanL= [] # List of exons spanned by insert
+        r1StartWrtTrans = 0 
+        r1StopWrtTrans  = ReadLength - 1 
+        r1ExonSpanL = []
+        r2StartWrtTrans = StopWrtTrans
+        r2StopWrtTrans  = StopWrtTrans - ReadLength + 1 
+        r2ExonSpanL = []
+
+        # Get all exons spanned by insert and reads 1 & 2.
+        for exon in exonL:
+            exonStart = transPos                    ## In transcript coords
+            exonStop  = transPos + len(exon.seq)    ## In transcript coords
+            ##### Insert #####
+            ## Insert starts in exon
+            if(StartWrtTrans >= exonStart and StartWrtTrans <= exonStop):
+                exonSpanL.append(exon)
+                insertStart = exon.start + (StartWrtTrans - exonStart)
+            ## Insert spans exon
+            if(StartWrtTrans <= exonStart and StopWrtTrans >= exonStop):
+                exonSpanL.append(exon)
+            ## Insert ends in exon
+            if(StopWrtTrans >= exonStart and StopWrtTrans <= exonStop):
+                exonSpanL.append(exon)
+                insertStop = exon.start + (StopWrtTrans - exonStart)
+
+            ##### Read 1 #####
+            ## Insert starts in exon
+            if(r1StartWrtTrans >= exonStart and r1StartWrtTrans <= exonStop):
+                r1ExonSpanL.append(exon)
+                r1Start = exon.start + (r1StartWrtTrans - exonStart)
+            ## Insert spans exon
+            if(r1StartWrtTrans <= exonStart and r1StopWrtTrans >= exonStop):
+                r1ExonSpanL.append(exon)
+            ## Insert ends in exon
+            if(r1StopWrtTrans >= exonStart and r1StopWrtTrans <= exonStop):
+                r1ExonSpanL.append(exon)
+                r1Stop = exon.start + (r1StopWrtTrans - exonStart)
+
+            ##### Read 2 #####
+            ## Insert starts in exon
+            if(r2StopWrtTrans >= exonStart and r2StopWrtTrans <= exonStop):
+                r2ExonSpanL.append(exon)
+                r2Stop = exon.start + (r2StopWrtTrans - exonStart)
+            ## Insert spans exon
+            if(r2StopWrtTrans <= exonStart and r2StartWrtTrans >= exonStop):
+                r2ExonSpanL.append(exon)
+            ## Insert ends in exon
+            if(r2StartWrtTrans >= exonStart and r2StartWrtTrans <= exonStop):
+                r2ExonSpanL.append(exon)
+                r2Start = exon.start + (r2StartWrtTrans - exonStart)
+
+            transPos = transPos + len(exon.seq)
+
+        self.start = insertStart    ## In chromosome coords
+        self.stop  = insertStop     ## In chromosome coords
+        self.exonL = exonSpanL      ## Exons spanned
+
+        self.r1Start = r1Start      ## In chromosome coords
+        self.r1Stop  = r1Stop       ## In chromosome coords
+        self.r1ExonL = r1ExonSpanL  ## Exons spanned
+        
+        self.r2Start = r2Start      ## In chromosome coords
+        self.r2Stop  = r2Stop       ## In chromosome coords
+        self.r2ExonL = r2ExonSpanL  ## Exons spanned
+        
+        if(len(self.r1ExonL) == 0):
+            exit_with_error("ERROR! Read 1 does _not_ span any exons!\n")
+        if(len(self.r2ExonL) == 0):
+            exit_with_error("ERROR! Read 2 does _not_ span any exons!\n")
+            
 
 
 class EXON:

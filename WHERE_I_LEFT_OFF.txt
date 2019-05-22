@@ -1,6 +1,5 @@
 Did:
 
-
 To Do:
 2. Install modern gcc like 7.0 or 8.0
 3. Figure out how to handle arbitrary number of cores in a machine for testing

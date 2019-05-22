@@ -901,7 +901,6 @@ def create_fastq_file(pathToFastq, desiredTransList, abundanceList, nReads,
     abundanceSum = 0
     transIdx = 0
     readIdx = 0
-    random.seed(42)
     
     for abundance in abundanceList:
         abundanceSum += abundance

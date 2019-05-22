@@ -106,6 +106,7 @@ def main():
             print_help(1)
     #pathToGtf = "/reference/homo_sapiens/GRCh38/ensembl/Annotation/Genes/gtf/Homo_sapiens.GRCh38.83.gtf"
     #pathToSeq = "/reference/homo_sapiens/GRCh38/ensembl/Sequence/WholeGenomeFasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
+    random.seed(42)
     pathToGtf = sys.argv[1]
     pathToSeq = sys.argv[2]
     pathToConfig = sys.argv[3]

@@ -1,16 +1,5 @@
 Did:
-1. simulate_fastq/simulate_fastq.py : 
-    a) Added readType option 
-    b) Removed loop generating many files in simulate_fastq.py data
-2. Added error.py to simulate_fastq/
-3. simulate_fastq/functions.py 
-    a) Replaced sys.stderr.write(); sys.exit() with exit_with_error()
-4. simulate_fastq/classes.py 
-    a) In EXON class, changed 
-       if(type(GtfEntry) is GTF_ENTRY) 
-               to 
-       if(not isinstance(GtfEntry, GTF_ENTRY))
-       Q. How did this ever work?
+
 
 To Do:
 2. Install modern gcc like 7.0 or 8.0
@@ -28,3 +17,11 @@ To Do:
        --> See : http://onetipperday.sterding.com/2012/07/how-to-tell-which-library-type-to-use.html
     c) Add CL or config variable for mu and sigma for insert length
 13. Add file access time on /dev/shm
+14. Tried running :
+    tophat2 -p 4 /reference/homo_sapiens/GRCh38/ensembl/release-83/Sequence/Bowtie2Index/Homo_sapiens.GRC38 poop.fq
+    --> Not effective for debugging.
+15. Check that my reads are correctly mapping to the transcripts: 
+    Single exons : 
+    awk 'BEGIN{LINE=int(944333/60+2); CHAR=int(944333%60); LEN=60; READLEN=50; REMAIN=READLEN-(LEN-CHAR)-1; print LINE " "CHAR " " REMAIN}{if(NR==LINE){print substr($0,CHAR,60); if(REMAIN>0){getline; print substr($0,1,REMAIN) }}}' ~/Code/Python/simulate_fastq_data/validate/data/chr1_short.fa
+16. Fix number of reads at CL vs. config.txt
+17. Check that I handle direction correctly (+/-) in ensembl's gtf format correctly

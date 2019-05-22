@@ -72,8 +72,9 @@ from functions import read_config
 from functions import print_transcripts_with_seqs
 from functions import create_insert
 from functions import create_fastq_file
+from error import exit_with_error
 
-def print_help():
+def print_help(Exit=1):
     """This prints the Help"""
     print("\nUSAGE: ./simulate_fastq.py pathToGtf pathToSequenc pathToConfig numReads pathToFastq readType\n"
             "pathToGtf      = Path to the _ensembl_ GTF file\n"
@@ -83,8 +84,10 @@ def print_help():
             "                 (an integer) and a line with ReadLength\n"
             "numReads       = the number of reads generated\n"
             "pathToFastq    = the output file name prefix\n"
-            "readType       = either : single, paired-fr, paired-rf"
+            "readType       = either : single, paired-fr-first, paired-fr-second"
     )
+    sys.exit(Exit)
+
 
 
 
@@ -98,11 +101,9 @@ def main():
     timeBegin = datetime.datetime.now()
     if(len(sys.argv) != 7):
         if(len(sys.argv) > 1 and (sys.argv[1] == "--help" or sys.argv[1] == "-h")):
-            print_help()
-            sys.exit(0)
+            print_help(0)
         else:
-            print_help()
-            sys.exit(1)
+            print_help(1)
     #pathToGtf = "/reference/homo_sapiens/GRCh38/ensembl/Annotation/Genes/gtf/Homo_sapiens.GRCh38.83.gtf"
     #pathToSeq = "/reference/homo_sapiens/GRCh38/ensembl/Sequence/WholeGenomeFasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
     pathToGtf = sys.argv[1]
@@ -123,17 +124,19 @@ def main():
 
     geneDict, transDict = create_gene_and_trans_lookup_dict(geneList, transList)
     print_gtf_statistics(exonList, transList, geneList)
-    # find_trans_that_differ_by_1_exon(geneList, transList) # Uncomment this if you want a complete list
+    # find_trans_that_differ_by_1_exon(geneList, transList) # Uncomment for complete list
     readLength, desiredTransList, abundanceList, numOfReads = read_config(pathToConfig)
     #random.seed(42)
 
     numOfReads = int(sys.argv[4])
 
-    #for i in range(0,100):
-    pathToFastq_2 = pathToFastq + "-1to1"
-    #    random.seed()
-    create_fastq_file(pathToFastq_2, desiredTransList, abundanceList, numOfReads, readLength,
-                      transDict, transList, exonList)
+    if(readType != 'single' and readType != 'paired-fr-first' and
+       readType != 'paired-fr-second'
+    ):
+        exit_with_error("ERROR!!! Incorrect value for {}".format(readType))
+    else:
+        create_fastq_file(pathToFastq, desiredTransList, abundanceList, numOfReads,
+                          readLength, transDict, transList, exonList, readType)
        
 
     print("Unique features in Gtf : ")

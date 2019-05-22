@@ -4,7 +4,7 @@ import datetime
 import random
 import copy
 import operator
-import numpy
+import numpy as np
 from error import exit_with_error
 #********************************************************************************
 #********************************************************************************
@@ -141,13 +141,23 @@ class GTF_ENTRY:
 
 
 class FASTQ_READ:
-    def __init__(self, Transcript = None, Insert = None, ReadLength = None, MetaData = None,
-                 exonList = None, R1_R2 = None):
+    def __init__(self, Insert = None, ReadLength = None, MetaData = None,
+                 ExonList = None, Direction = None):
         """
         ARGS:
-            Transcript = a TRANSCRIPT instance
-            Insert = an INSERT instance
+            Insert     = an INSERT instance
             ReadLength = length of desired read.
+            MetaData   = Read number
+            ExonList   = 
+            Direction  = either 'forward' or 'reverse'
+                         'forward' : matches mRNA starting from 5' -> 3'
+                                     (the way ribosome trascribes mRNA)
+                         'reverse' : matches complement mRNA starting from 3' -> 5' 
+
+                         E.g. 
+                         5' =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=> 3'
+                            -----> 'forward'
+                                                     'reverse' <-------- 
         RETURN:
             NONE : Initializes GENE
 
@@ -155,6 +165,9 @@ class FASTQ_READ:
             Currently, synthetic reads are forced to be completely contained within
             the transcript. i.e, I am not permitting them to read into the
             adapters, we'll save that for future work
+
+        NOTES :
+            1. http://onetipperday.sterding.com/2012/07/how-to-tell-which-library-type-to-use.html
 
         DEBUG:
             I've only done some spot debugging. I _really_ _really_ need to 
@@ -172,19 +185,20 @@ class FASTQ_READ:
             this means that the exonIDs written to the header are also correct.
 
         FUTURE: 
+            1. Test both types of paired end reads  
+            2. Test reads/transcrips on the +/- strands
         """
         self.seq  = None
         self.qual = None
         self.readlen = None
         self.metadata = None
-        self.read = R1_R2           # whether the fastq read is read 1 or read 2
-        exonsSpanned = []           # List of exons spanned by read
-        startWrtGenome = 0          # coord relative to genome / chromosome start
-        stopWrtGenome = 0           # coord relative to genome / chromosome start
-        #exonCoordsWrtTrans = {}    # dict of lists : relative exon coords w/r/t transcript start
-        curTransPos  = 0            # current transcipt coordinate position.
-
-        #insertList = []             # List of inserts from this transcript
+        self.readDirection  = Direction   # whether the fastq read is forward / reverse comp
+        self.start  = 0      # coord wrt to chromosome start (gtf start def this way)
+        self.stop   = 0      # coord wrt to chromosome stop (gtf stop def this way)
+        exonsSpannedL = []   # List of exons spanned by read
+        startWrtChr = 0      # coord wrt to chromosome start (gtf start def this way)
+        stopWrtChr  = 0      # coord wrt to chromosome stop (gtf stop def this way)
+        posWrtTrans = 0      # current transcipt coordinate position.
 
         # type check 
         if(not isinstance(Insert, INSERT)):
@@ -203,86 +217,138 @@ class FASTQ_READ:
 
         # ALSO : recall that Transcript.seq is always in the direction that
         # transcripts are transcribed.
-
-        if (self.read == "R1"):
+        # See : http://onetipperday.sterding.com/2012/07/how-to-tell-which-library-type-to-use.html
+        if(self.readDirection == "forward"):
             self.seq = Insert.seq[0:ReadLength]
-        else:
+            # start / stop are _inclusive_
+            self.start = Insert.start
+            self.stop  = Insert.start + ReadLength - 1 # -1 keeps len == ReadLength
+        elif(self.readDirection == "reverse"):
             seqLen = len (Insert.seq)
             self.seq = reverse_complement(Insert.seq[seqLen-ReadLength:seqLen])
+            # start / stop are _inclusive_
+            self.start = Insert.stop
+            self.stop  = Insert.stop - ReadLength + 1  # +1 keeps len == ReadLength
+        else:
+            exit_with_error("ERROR!!! {} is invalid".format(self.readDirection))
 
 
         # Add useful information to reads
-        # shouldn't be so complicated. will neet to revise Transcript.exonList to simplify this part
-        if(MetaData is not None):
-            exonsSpanned = []
-            curTransPos  = 0                                 # Find exon start pos w/r/t trans start
-
-            # Get read start position w/r/t genome.
-            # Also, get exons spanned by read.
-
-            #sys.stderr.write("Transcript:\n%s\n\n"%Transcript.transID)
-            #sys.stderr.write("Insert start %i\t stop:%i\n"%(Insert.t_start,Insert.t_stop))
-
-
-            for exonIdx in Transcript.exonIdxList:
-                # below transcript coordinates are 0 indexed, and the coordinates are _inclusive_
-                exon = exonList[exonIdx]                # get actual EXON instance
-                exonLen = len(exon.seq)
-                # exonCoordsWrtTrans[exonIdx] = [curTransPos, curTransPos + exonLen - 1]
-
-                #sys.stderr.write("exonIdx:\t%i\tstart: %i\tstop: %i\texonLen: %i\t"%(exonIdx,exon.start,exon.stop,exonLen))
-    
-
-                # The start of the insert is to the right of the current exon pointer
-                #   Note the pointer always point to the start position of the exon
-                if(Insert.t_start >= curTransPos):
-                    # The start of the insert is to the right of the current exon, 
-                    #   so break the loop and  check next exon
-                    if (Insert.t_start > curTransPos + exonLen - 1):
-                        curTransPos += exonLen
-                        #sys.stderr.write("\tcurTransPos: %i\n"%curTransPos)
-                        continue
-
-                    # The start of the insert falls into this exon 
-                    #   then we define the position of the insert start w/r/t genome
-                    #   exon.start and exon.stop is 1 indexed
-                    if (Transcript.strand == '+'):
-                        startWrtGenome = exon.start + (Insert.t_start - curTransPos)
-                    else:
-                        startWrtGenome = exon.stop - (Insert.t_start - curTransPos)
-                    #sys.stderr.write("startWrtGenome defined!\t")
-
-                # The start of the insert is to the left of the current exon
-                #   Now we check the stop position of the insert
-                #   If the stop of the insert is in this exon, then we define the position of t
-                #      the insert stop w/r/t the genome and break the loop
-                if (Insert.t_stop <= curTransPos + exonLen - 1):
-                    if(Transcript.strand == '+'):
-                        stopWrtGenome = exon.start + (Insert.t_stop - curTransPos)
-                    else:
-                        stopWrtGenome = exon.stop - (Insert.t_start - curTransPos)
-                    #sys.stderr.write("stopWrtGenome defined!\t")
-                    
-                    exonsSpanned.append(exon.exonID)
-                    #sys.stderr.write("\texonsSpanned: %i\tcurTransPos: %i\n"%(len(exonsSpanned),curTransPos))
-                    # break the loop
-                    break
-                else: # The stop of the insert is still on the horizon, increment the variables and 
-                      # continue
-                    exonsSpanned.append(exon.exonID)
-                    curTransPos += exonLen
-
-                #sys.stderr.write("\texonsSpanned: %i\tcurTransPos: %i\n"%(len(exonsSpanned),curTransPos))
-
-            if(len(exonsSpanned) == 0):
-                exit_with_error("ERROR! Read does _not_ span any exons!\n")
-
-            exonsSpanned = list(set(exonsSpanned))
-            self.metadata = "%s:trans:%s:start:%i:exons"%(MetaData, Transcript.transID, startWrtGenome)
-            for exonName in exonsSpanned:
-                self.metadata = "%s:%s"%(self.metadata, exonName)
-        else:
+        # shouldn't be so complicated. will need to revise Transcript.ExonList to
+        # simplify this part
+        if(MetaData is None):
             exit_with_error("ERROR! MetaData not specified!\n")
+
+        readExonL = []
+        #posWrtTrans  = 0        # Find exon start pos w/r/t trans start
+
+        # Sort exons spanned by the transcript the insert is probing
+        exonL = [ExonList[idx] for idx in Insert.transcript.exonIdxList]
+        exonL = sorted(exonL, key=operator.attrgetter('start'))
+
+        # Get exons spanned by read.
+        for exon in exonL:
+            if(self.readDirection == "forward"):
+                # Read starts on exon
+                if(self.start >= exon.start and self.start <= exon.stop):
+                    exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
+                                       exon.start, exon.stop))
+                    continue
+                # Read spans entire exon
+                if(self.start <= exon.start and self.stop >= exon.stop):
+                    exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
+                                       exon.start, exon.stop))
+                    continue
+                # Read ends on exon
+                if(self.stop >= exon.start and self.stop <= exon.stop):
+                    exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
+                                       exon.start, exon.stop))
+                    continue
+                
+            ### Recall that exon.start / exon.stop have no direction info embedded
+            elif(self.readDirection == "reverse"):
+                exit_with_error("ERROR!!! 'reverse' is untested!")
+                # Read starts on exon
+                if(self.start >= exon.stop and self.start <= exon.stop):
+                    exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
+                                       exon.start, exon.stop))
+                    continue
+                # Read spans entire exon
+                if(self.start <= exon.stop and self.start>= exon.stop):
+                    exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
+                                       exon.start, exon.stop))
+                    continue
+                # Read ends on exon
+                if(self.stop >= exon.stop and self.start <= exon.stop):
+                    exonsSpannedL.append("{}:{}:{}".format(exon.exonID.strip('\"'),
+                                       exon.start, exon.stop))
+                    continue
+
+            else:
+                exit_with_error("ERROR!!! {} direction is invalid\n".format(
+                                self.readDirection))
+            ### below trans coords are 0 indexed, and the coords are _inclusive_
+            ##exon = ExonList[exonIdx]                # get actual EXON instance
+            ##exonLen = len(exon.seq)
+            ### exonCoordsWrtTrans[exonIdx] = [posWrtTrans, posWrtTrans + exonLen - 1]
+
+            ###sys.stderr.write("exonIdx:\t%i\tstart: %i\tstop: %i\texonLen: "
+            ###                 "%i\t"%(exonIdx,exon.start,exon.stop,exonLen))
+    
+            ##### Advance posWrtTrans to start of Insert (Insert.startWrtTrans)
+            ###   The start of the insert is to the right of the current exon pointer
+            ###   Note the pointer always point to the start position of the exon
+            ##if(Insert.startWrtTrans >= posWrtTrans):
+            ##    # The start of the insert is to the right of the current exon, 
+            ##    #   so break the loop and  check next exon
+            ##    if(Insert.startWrtTrans > posWrtTrans + exonLen - 1):
+            ##        posWrtTrans += exonLen
+            ##        #sys.stderr.write("\tposWrtTrans: %i\n"%posWrtTrans)
+            ##        continue
+
+            ##    # The start of the insert falls into this exon 
+            ##    #   then we define the position of the insert start w/r/t genome
+            ##    #   exon.start and exon.stop is 1 indexed
+            ##    if(Transcript.strand == '+'):
+            ##        startWrtChr = exon.start + (Insert.startWrtTrans - posWrtTrans)
+            ##    else:
+            ##        startWrtChr = exon.stop - (Insert.startWrtTrans - posWrtTrans)
+            ##    #sys.stderr.write("startWrtChr defined!\t")
+
+            ### The start of the insert is to the left of the current exon
+            ###   Now we check the stop position of the insert
+            ###   If the stop of the insert is in this exon, then we define the 
+            ###      position of the insert stop w/r/t the genome and break the loop
+            ##if (Insert.stopWrtTrans <= posWrtTrans + exonLen - 1):
+            ##    if(Transcript.strand == '+'):
+            ##        stopWrtChr = exon.start + (Insert.stopWrtTrans - posWrtTrans)
+            ##    else:
+            ##        stopWrtChr = exon.stop - (Insert.startWrtTrans - posWrtTrans)
+            ##    #sys.stderr.write("stopWrtChr defined!\t")
+            ##    
+            ##    exonsSpanned.append("{}:{}:{}".format(exon.exonID,exon.start,
+            ##                        exon.stop))
+            ##    #sys.stderr.write("\texonsSpanned: %i\tposWrtTrans: %i\n"%(
+            ##    #                 len(exonsSpanned),posWrtTrans))
+            ##    # break the loop
+            ##    break
+            ##else: # The stop of the insert is still on the horizon, increment
+            ##      #  the variables and continue
+            ##    exonsSpanned.append("{}:{}:{}".format(exon.exonID,exon.start,
+            ##                        exon.stop))
+            ##    posWrtTrans += exonLen
+
+            ###sys.stderr.write("\texonsSpanned: %i\tposWrtTrans: %i\n"%(
+            ###                 len(exonsSpanned),posWrtTrans))
+
+        if(len(exonsSpannedL) == 0):
+            exit_with_error("ERROR! Read does _not_ span any exons!\n")
+
+        #exonsSpannedL = list(set(exonsSpannedL))
+        self.metadata = "%s:trans:%s:start:%i:exons"%(MetaData, Transcript.transID,
+                        startWrtChr)
+        for exonName in exonsSpannedL:
+            self.metadata = "%s:%s"%(self.metadata, exonName)
 
 
 
@@ -440,7 +506,6 @@ class TRANSCRIPT:
 
         # type check
         if(not isinstance(GtfEntry, GTF_ENTRY)):
-            import pdb; pdb.set_trace()
             exit_with_error("ERROR! GtfEntry is not of class type GTF_ENTRY\n")
 
         if(GtfEntry.chrm is not None):
@@ -466,7 +531,7 @@ class TRANSCRIPT:
         if(GtfEntry.transID is not None):
             self.transID = GtfEntry.transID
             self.transNum = self.transID[4:]
-        else     :
+        else:
             exit_with_error("ERROR! GtfEntry.transcriptID is None\n")
 
 
@@ -475,8 +540,8 @@ class INSERT:
         """
         ARGS:
             Transcript = a TRANSCRIPT instance
-            start = the start position on chrm
-            stop = the stop position on chrm
+            start = the start wrt to the transcript
+            stop  = the stop wrt to the transcript
             sequence = the sequence of the insert
 
         RETURN:
@@ -488,21 +553,21 @@ class INSERT:
         """
         self.seq    = None        # str, sequence
         self.chrm   = None        # str, Chromosome
-        self.t_start  = start        # int, Start position on the transcript (starts from 0)
-        self.t_stop   = stop        # int, End position on the transcript
-        self.start = None       # int, start position w/r/t the chromosome
-        self.stop = None        # int, start position w/r/t the chromosome
+        self.startWrtTrans= start # int, Start position w/r/t transcript (starts from 0)
+        self.stopWrtTrans = stop  # int, End position w/r/t transcript
+        self.start  = Transcript.start + start# int, start position w/r/t the chromosome
+        self.stop   = Transcript.start + stop # int, start position w/r/t the chromosome
         self.strand = None        # str, '+' (forward) or '-' (reverse)
         self.geneID = None        # str, nominal geneID, but may belong to multiple genes
         self.transID = None       # str, nominal transcript ID, may belong to mult. trans.
         self.transNum= None       # str, only number portion of transID for sorting by transcript num
-       
-        #self.insertIdx = idx       # int, '0' indexed insert position w/r/t other inserts
 
 
         # type check
         if(not isinstance(Transcript, TRANSCRIPT)):
             exit_with_error("ERROR! Transcript is not of class type TRANSCRIPT 2\n")
+        else:
+            self.transcript = Transcript
 
         if(Transcript.chrm is not None):
             self.chrm = Transcript.chrm

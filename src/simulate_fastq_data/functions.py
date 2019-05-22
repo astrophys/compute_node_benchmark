@@ -51,9 +51,8 @@ def read_gtf(PathToGtf = None):
         line = line.split("\t")
         # Format check
         if(len(line) != 9):
-            sys.stderr.write("ERROR! There should be 9 tab separated columns in a GTF file\n"
-                             "You only have %i\n"%(len(line)))
-            sys.exit(1)
+            exit_with_error("ERROR! There should be 9 tab separated columns in a"
+                            " GTF file\nYou only have %i\n"%(len(line)))
         gtfEntry = GTF_ENTRY(Chromosome = line[0], Source = line[1], EntryType = line[2],
                              Start = line[3], Stop = line[4], Score = line[5], Strand = line[6],
                              Frame = line[7], Attribute = line[8])
@@ -241,10 +240,8 @@ def get_exon_seq(exonList, chrmList):
                 start = exon.start - 1        # -1 b/c python is 0 indexed, gtf file isnot
                 end   = exon.stop
                 if(start >= chrmLen or end >= chrmLen):
-                    sys.stderr.write("ERROR!! start (%i) or stop (%i) Position > chromosome length (%i)\n"%
-                                     (start, end, chrmLen))
-                    sys.exit(1)
-
+                    exit_with_error("ERROR!! start (%i) or stop (%i) Position > "
+                                    "chromosome length (%i)\n"%(start, end, chrmLen))
                 if(exon.strand == '+'):
                     exon.seq = chrm.seq[start:end]
                 elif(exon.strand == '-'):
@@ -280,9 +277,8 @@ def get_trans_seq(transList, exonList):
             if(exon.transID == trans.transID):
                 exonNum = int(exon.exonNum)
                 if(exonNum - prevExonNum != 1):
-                    sys.stderr.write("ERROR! exon numbers for %s are loaded out of order!\n"%
-                                    (trans.transID))
-                    sys.exit(1)
+                    exit_with_error("ERROR! exon numbers for %s are loaded out of "
+                                    "order!\n"%(trans.transID))
                 if(trans.seq is None):
                     trans.seq = exon.seq
                 else:
@@ -331,16 +327,16 @@ def link_exons_trans_and_genes(gtfList, exonList, transList, geneList):
     RETURN:
 
     DESCRIPTION:
-        Loops through gtfList and captures the indices of exons in exonList and passes it to 
-        the transcripts in transList.  Also captures indices of transcripts in transList and
-        passes it to genes in geneList.
+        Loops through gtfList and captures the indices of exons in exonList and passes
+        it to the transcripts in transList.  Also captures indices of transcripts in
+        transList and passes it to genes in geneList.
         
         Does this in one pass through gtfList and scales roughly O(N). Should be faster
         than previous versions.
 
     DEBUG: 
-        I validated by using print_transcripts_with_seqs() and comparing against the biomart
-        download for chromosome 1. My data file was _identical_ to biomart's. 
+        I validated by using print_transcripts_with_seqs() and comparing against the
+        biomart download for chromosome 1. My data file was _identical_ to biomart's. 
 
         For how this was done, see the debug comment in print_transcripts_with_seqs() 
     FUTURE: 
@@ -351,14 +347,15 @@ def link_exons_trans_and_genes(gtfList, exonList, transList, geneList):
     gtfListLen = len(gtfList)
     timeBegin = datetime.datetime.now()
     
-    # Ugly, and non-pythonic b/c i cant find cleaner way of accessing the next gtfEntry in the list
+    # Ugly / non-pythonic b/c cant find cleaner way of accessing the next gtfEntry in the list
     for i in range(len(gtfList)):
         if(gtfList[i].etype == "gene"):
             # Check that genes in geneList are same order as gtfList 
             if(gtfList[i].geneID != geneList[gIdx].geneID):
-                sys.stderr.write("ERROR! gtfList[%i].geneID = %s and geneList[%i].geneID = %s"%(
-                                 i, gtfEntry.geneID, gIdx, geneList[gIdx].geneID))
-                sys.exit(1)
+                exit_with_error(
+                    "ERROR! gtfList[%i].geneID = %s and geneList[%i].geneID = %s"%(
+                    i, gtfEntry.geneID, gIdx, geneList[gIdx].geneID)
+                )
             j = i + 1
 
             # Get constituent transcripts between gene entries
@@ -378,8 +375,8 @@ def link_exons_trans_and_genes(gtfList, exonList, transList, geneList):
                         # Get constituent exons between transcript entries
                         while(gtfList[k].etype != "transcript"):
                             if(gtfList[k].etype == "exon"):
-                                # Check that exons in exonList are same order as gtfList 
-                                # Checking exons after transcript in gtf are members of the transcript 
+                                # Check exons in exonList are same order as gtfList 
+                                # Checking exons after trans in gtf are members trans
                                 # Add exon info to appropriate transList[]
                                 if(gtfList[k].transID == exonList[eIdx].transID and
                                   gtfList[i].geneID == exonList[eIdx].geneID   and
@@ -388,26 +385,27 @@ def link_exons_trans_and_genes(gtfList, exonList, transList, geneList):
                                     transList[tIdx].exonIdxList.append(eIdx)
                                     eIdx += 1
                                 else:
-                                    sys.stderr.write("ERROR! gtfList[%i].transID = %s and exonList[%i]."
-                                                  "transID = %s\n\tgtfList[%i].geneID = %s and "
-                                                  "transList[%i].geneID = "
-                                                  "%s\n\tand geneList[%i].geneID = %s\n"%
-                                                  (k, gtfList[k].transID, eIdx, exonList[eIdx].transID,
-                                                  k, gtfList[k].geneID, tIdx, transList[tIdx].geneID,
-                                                  gIdx, geneList[gIdx].geneID))
-                                    sys.exit(1)
+                                    exit_with_error(
+                                     "ERROR! gtfList[%i].transID = %s and exonList[%i]."
+                                     "transID = %s\n\tgtfList[%i].geneID = %s and "
+                                     "transList[%i].geneID = "
+                                     "%s\n\tand geneList[%i].geneID = %s\n"%
+                                     (k, gtfList[k].transID,eIdx, exonList[eIdx].transID,
+                                     k, gtfList[k].geneID, tIdx, transList[tIdx].geneID,
+                                     gIdx, geneList[gIdx].geneID)
+                                    )
                             k += 1
                             if(k == gtfListLen):
                                 break
                         tIdx += 1   
                     else:
-                        sys.stderr.write("ERROR! gtfList[%i].transID = %s and transList[%i].transID = "
-                                         "%s\n\tgtfList[%i].geneID = %s and transList[%i].geneID = "
-                                         "%s\n\tand geneList[%i].geneID = %s\n"%
-                                         (j, gtfList[j].transID, tIdx, transList[tIdx].transID,
-                                         j, gtfList[j].geneID, tIdx, transList[tIdx].geneID,
-                                         gIdx, geneList[gIdx].geneID))
-                        sys.exit(1)
+                        exit_with_error(
+                            "ERROR! gtfList[%i].transID= %s and transList[%i].transID = "
+                            "%s\n\tgtfList[%i].geneID = %s and transList[%i].geneID = "
+                            "%s\n\tand geneList[%i].geneID = %s\n"%
+                            (j, gtfList[j].transID, tIdx, transList[tIdx].transID,
+                            j, gtfList[j].geneID, tIdx, transList[tIdx].geneID, gIdx,
+                            geneList[gIdx].geneID))
                 j += 1
                 if(j == gtfListLen):
                     break
@@ -416,6 +414,7 @@ def link_exons_trans_and_genes(gtfList, exonList, transList, geneList):
     # Now get transcript sequences.
     for trans in transList:
         trans.seq = ""
+        ### ERROR??? Possible fix needed here to address transcripts on '-' strand
         for eIdx in trans.exonIdxList:
             trans.seq += exonList[eIdx].seq
 
@@ -682,7 +681,8 @@ def read_config(pathToConfig):
                 readLength = int(line[1])
                 continue
             else:
-                exit_with_error("ERROR! multiple instances of ReadLength in config file\n")
+                exit_with_error("ERROR! multiple instances of ReadLength in config "
+                                "file\n")
 
         # NumberOfReads
         if(line[0] == "NumberOfReads"):
@@ -690,21 +690,23 @@ def read_config(pathToConfig):
                 numOfReads = int(line[1])
                 continue
             else:
-                exit_with_error("ERROR! multiple instances of ReadLength in config file\n")
+                exit_with_error("ERROR! multiple instances of ReadLength in config "
+                                "file\n")
         
         # Transcripts
         if(re.search('ENST', line[0])):
             desiredTransList.append(line[0])
             abundanceList.append(int(line[1]))
         else:
-            sys.stderr.write("ERROR! Incorrect transcript entry : %s\n"
-                             " All entries should begin with 'ENST'\n"%(line))
-            sys.exit(1)
+            exit_with_error("ERROR! Incorrect transcript entry : %s\n"
+                            " All entries should begin with 'ENST'\n"%(line))
             
     if(readLength == 0 or numOfReads == 0):
-        exit_with_error("ERROR! ReadLength or NumberOfReads not specified in config.txt\n")
+        exit_with_error("ERROR! ReadLength or NumberOfReads not specified in "
+                        "config.txt\n")
 
-    print("Config File Parameters : \nReadLength : %i\nNumberOfReads : %i"%(readLength, numOfReads))
+    print("Config File Parameters : \nReadLength : %i\nNumberOfReads : %i"%(readLength,
+          numOfReads))
     i = 0
     for trans in desiredTransList:
         print("%s %i"%(trans,abundanceList[i]))
@@ -823,8 +825,8 @@ def create_insert(Transcript, readLength, mu, sigma):
     return insert
 
 
-def create_fastq_file(pathToFastq, desiredTransList, abundanceList, numOfReads,
-                      readLength, transDict, transList, exonList):
+def create_fastq_file(pathToFastq, desiredTransList, abundanceList, nReads,
+                      readLength, transDict, transList, exonList, readType):
     """
     ARGS:
         pathToFastq      : Path to output fastq file
@@ -833,18 +835,19 @@ def create_fastq_file(pathToFastq, desiredTransList, abundanceList, numOfReads,
                            the number of reads. 
                                 E.g. trans1 has 5 and trans2 has 10, 
                                      the ratio of trans1 : trans2 = 1 : 2
-        numOfReads       : Rough number of desired reads, the ratios from abundanceList
-                           is maintained at the expense of numOfReads. 
-                                E.g from the above example if numOfReads = 10, 
+        nReads           : Rough number of desired reads, the ratios from abundanceList
+                           is maintained at the expense of nReads. 
+                                E.g from the above example if nReads = 10, 
                                     the actual number of reads would be 
                                     3 for trans1, 6 for trans2
         readLength       : length of reads
-        transDict        : Dictionary used map transID quickly to the correct transcript in 
-                           transList
+        transDict        : Dictionary used map transID quickly to the correct
+                           transcript in transList
         transList        : List of TRANSCRIPTs. Contains sequence to pass to instance of 
                            FASTQ_READ()
         exonList         : List of EXONs. Passed to FASTQ_READ() to get metadata for each
                            fastq read. E.g. the start position and exons a read spans.
+        readType         : either : single, paired-fr, paired-rf"
     RETURN:
         None. File written
 
@@ -860,8 +863,7 @@ def create_fastq_file(pathToFastq, desiredTransList, abundanceList, numOfReads,
             Copied synthetic_sample.fastq to poop.fq
 
             ****** in vim ******
-            %s/^@Read.\{1,1000\}:start:\([0-9]\{1,100\}\):exons:\(.\{1,100\}\)\n\(^[A-Z]\{50\}\)\n^+\n
-                                \(^.\{50\}\)/\1\t\3\t\2/gc
+            %s/^@Read.\{1,1000\}:start:\([0-9]\{1,100\}\):exons:\(.\{1,100\}\)\n\(^[A-Z]\{50\}\)\n^+\n\(^.\{50\}\)/\1\t\3\t\2/gc
             %s/:/\t/g   # remove colon sep exon names
             %s/"//g     # remove " around exon names
 
@@ -888,48 +890,90 @@ def create_fastq_file(pathToFastq, desiredTransList, abundanceList, numOfReads,
         Include more error checking for goofy parameters, e.g. not enough reads for
         the ratios, etc.
     """
-    import pdb; pdb.set_trace()
-    pathToFastqR1 = pathToFastq + "-R1.fq"
-    pathToFastqR2 = pathToFastq + "-R2.fq"
-    fastqFileR1 = open(pathToFastqR1, "w+")
-    fastqFileR2 = open(pathToFastqR2, "w+")
-    fastqListR1 = []
-    fastqListR2 = []
     abundanceSum = 0
     transIdx = 0
     readIdx = 0
+    random.seed(42)
     
     for abundance in abundanceList:
         abundanceSum += abundance
     #abundanceNormalization = abundanceNormalization / len(abundanceList)    # integer division
     if(abundanceSum < 1):
-        sys.stderr.write("ERROR! abundanceSum = %i\n"
-                         "Please enter abundance values > 1\n"%(abundanceNormalization))
-        sys.exit(1)
+        exit_with_error("ERROR! abundanceSum = {}\nPlease enter abundance "
+                        "values > 1\n".format(abundanceNormalization))
+
+
+    if(readType == 'single'):
+        pathToFastqR1 = pathToFastq + ".fq"
+        fastqFileR1 = open(pathToFastqR1, "w+")
+        fastqListR1 = []
+        
+    elif(readType == 'paired-fr-first' or readType == 'paired-fr-second'):
+        pathToFastqR1 = pathToFastq + "-R1.fq"
+        pathToFastqR2 = pathToFastq + "-R2.fq"
+        fastqFileR1 = open(pathToFastqR1, "w+")
+        fastqFileR2 = open(pathToFastqR2, "w+")
+        fastqListR1 = []
+        fastqListR2 = []
+    else:
+        exit_with_error("ERROR!!! Incorrect value for {}".format(readType))
+
     
     for transName in desiredTransList:
         try:
             trans = transList[transDict[transName]]
         except KeyError:
-            exit_with_error("ERROR! %s is not a transcript annotated in your gtf file\n"%(transName))
-        for i in range( int(float(abundanceList[transIdx]) / float(abundanceSum) * numOfReads)):
-            insert = create_insert (trans, readLength, 150, 15 )
-            fastqEntry = FASTQ_READ(trans, insert, readLength, "@Read_num:%i"%(readIdx), exonList, "R1")
-            fastqListR1.append(fastqEntry)
+            exit_with_error("ERROR! {} is not a transcript annotated in your "
+                            "gtf file\n".format(transName))
 
-            fastqEntry = FASTQ_READ(trans, insert, readLength, "@Read_num:%i"%(readIdx), exonList, "R2")
-            fastqListR2.append(fastqEntry)
+        for i in range(int(float(abundanceList[transIdx])/float(abundanceSum) * nReads)):
+            insert = create_insert(trans, readLength, 150, 15)
+
+
+            if(readType == 'single'):
+                fastqEntry = FASTQ_READ(Insert = insert, ReadLength = readLength,
+                                        MetaData = "@Read_num:%i"%(readIdx),
+                                        ExonList=exonList, Direction = "forward")
+                fastqListR1.append(fastqEntry)
+
+            elif(readType == 'paired-fr-first'):
+                fastqEntry = FASTQ_READ(Insert = insert, ReadLength = readLength,
+                                        MetaData   = "@Read_num:%i"%(readIdx),
+                                        ExonList   = exonList, Direction = "reverse")
+                fastqListR1.append(fastqEntry)
+                fastqEntry = FASTQ_READ(Insert = insert, ReadLength = readLength,
+                                        MetaData   = "@Read_num:%i"%(readIdx),
+                                        ExonList   = exonList, Direction = "forward")
+                fastqListR2.append(fastqEntry)
+            elif(readType == 'paired-fr-second'):
+                fastqEntry = FASTQ_READ(Insert = insert, ReadLength = readLength,
+                                        MetaData   = "@Read_num:%i"%(readIdx),
+                                        ExonList   = exonList, Direction = "forward")
+                fastqListR1.append(fastqEntry)
+                fastqEntry = FASTQ_READ(Insert = insert, ReadLength = readLength,
+                                        MetaData   = "@Read_num:%i"%(readIdx),
+                                        ExonList   = exonList, Direction = "reverse")
+                fastqListR2.append(fastqEntry)
+
             readIdx += 1
         transIdx += 1
 
-    for fastqEntry in fastqListR1:
-        fastqFileR1.write("%s\n%s\n+\n%s\n"%(fastqEntry.metadata, fastqEntry.seq, fastqEntry.qual))
+    if(readType == 'single'):
+        for fastqEntry in fastqListR1:
+            fastqFileR1.write("%s\n%s\n+\n%s\n"%(fastqEntry.metadata,
+                              fastqEntry.seq, fastqEntry.qual))
+        fastqFileR1.close()
+    else:
+        for fastqEntry in fastqListR1:
+            fastqFileR1.write("%s\n%s\n+\n%s\n"%(fastqEntry.metadata,
+                              fastqEntry.seq, fastqEntry.qual))
         
-    for fastqEntry in fastqListR2:
-        fastqFileR2.write("%s\n%s\n+\n%s\n"%(fastqEntry.metadata, fastqEntry.seq, fastqEntry.qual))
+        for fastqEntry in fastqListR2:
+            fastqFileR2.write("%s\n%s\n+\n%s\n"%(fastqEntry.metadata,
+                              fastqEntry.seq, fastqEntry.qual))
 
-    fastqFileR1.close()
-    fastqFileR2.close()
+        fastqFileR1.close()
+        fastqFileR2.close()
 
 
 

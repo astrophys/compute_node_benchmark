@@ -8,3 +8,5 @@ __pycache__
 matrix_multiply_cache_opt
 matrix_multiply_non_cache_opt
 *.pyc
+*.fq
+tophat_out

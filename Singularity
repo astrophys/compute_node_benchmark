@@ -51,6 +51,18 @@ Put Help here
     yum install -y wget
     yum install -y tar.x86_64
     yum install -y unzip.x86_64
+    yum install -y autoconf.noarch
+    yum install -y automake.noarch
+    yum install -y time.x86_64
+    # Samtools dependencies here
+    #yum install -y bzip2
+    #yum install -y bzip2-devel
+    #yum install -y zlib.x86_64
+    #yum install -y zlib-devel.x86_64
+    #yum install -y gawk.x86_64
+    #yum install -y liblzma5.x86_64
+    #yum install -y xz-devel.x86_64
+    
 
     mkdir -p /opt/python3.4/lib/python3.4/site-packages
     export PYTHONPATH=/opt/python3.4/lib/python3.4/site-packages:$PYTHONPATH
@@ -58,6 +70,7 @@ Put Help here
     export PATH=/opt/python3.4/bin:$PATH
     easy_install-3.4 --prefix /opt/python3.4 pip
     pip install --prefix /opt/python3.4 scipy
+    pip install --prefix /opt/python3.4 argparse
     #
     ##### Do compilation of files ####
     mkdir /opt/code
@@ -71,17 +84,7 @@ Put Help here
     gcc -O3 -fopenmp -c src/matrix/matrix_multiply_omp.c -o src/matrix/matrix_multiply_omp.o
     gcc -O3 -fopenmp src/matrix/matrix_multiply_omp.o -o src/matrix/matrix_multiply_non_cache_opt
 
-    # Get genomics data
-    mkdir /opt/ref
-    mv /tmp/*.fa  /opt/ref
-    mv /tmp/*.gtf /opt/ref
-    ### Uncomment if this isn't locally located ###
-    #wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-96/gtf/homo_sapiens/Homo_sapiens.GRCh38.96.gtf.gz
-    #gunzip Homo_sapiens.GRCh38.96.gtf.gz
-    #wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-96/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
-    #gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
-
-    # Install necessary software
+    ###### Install necessary software ######
     mkdir /opt/software
     cd    /opt/software
     # Bowtie
@@ -101,6 +104,36 @@ Put Help here
     unzip hisat2-2.1.0-Linux_x86_64.zip
     rm hisat2-2.1.0-Linux_x86_64.zip
 
+    # Cufflinks
+    wget http://cole-trapnell-lab.github.io/cufflinks/assets/downloads/cufflinks-2.2.1.Linux_x86_64.tar.gz
+    tar xvzf cufflinks-2.2.1.Linux_x86_64.tar.gz
+    rm cufflinks-2.2.1.Linux_x86_64.tar.gz
+    mv cufflinks-2.2.1.Linux_x86_64 cufflinks-2.2.1
+    
+    # Samtools
+    #wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2
+    #tar xvjf samtools-1.9.tar.bz2
+    #rm samtools-1.9.tar.bz2
+    #cd samtools-1.9
+    #./configure --without-curses
+    #make
+    #mkdir bin
+    #mv samtools bin/
+
+
+    ########### Get genomics data ##########
+    mkdir /opt/ref
+    cd /opt/ref
+    mv /tmp/*.fa  /opt/ref
+    mv /tmp/*.gtf /opt/ref
+    # This is expensive - I should really just copy it
+    /opt/software/bowtie2-2.3.5.1/bowtie2-build Homo_sapiens.GRCh38.dna.primary_assembly.fa Homo_sapiens.GRC38
+    ### Uncomment if this isn't locally located ###
+    #wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-96/gtf/homo_sapiens/Homo_sapiens.GRCh38.96.gtf.gz
+    #gunzip Homo_sapiens.GRCh38.96.gtf.gz
+    #wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-96/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+    #gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+
     echo "Hello from inside the container"
 
 
@@ -111,6 +144,8 @@ Put Help here
     export PATH=/opt/software/tophat-2.1.1:$PATH
     export PATH=/opt/software/hisat2-2.1.0:$PATH
     export PATH=/opt/software/bowtie2-2.3.5.1:$PATH
+    export PATH=/opt/software/cufflinks-2.2.1:$PATH
+    export PATH=/opt/software/samtools-1.9/bin:$PATH
 
     # Generate files to run - This won't work here b/c it will try to write files to a directory and recall Singularity images cannot modify themselves in runscript. Recall we can use SINGULARITYENV_PATH
     ## I think python3 src/driver.py all will replace below code - be sure it writes, reads, and cleans up tmp 
@@ -143,6 +178,8 @@ Put Help here
     mv data/A.txt  data/5000
 
     mkdir -p data/rnaseq/fastq
+    mkdir -p output/rnaseq/tophat
+    mkdir -p output/rnaseq/hisat
     #echo "Creating 10000 10000 10000 10000 files"
     #mkdir -p data/10000/output
     #python3 src/matrix/matrix_generator.py 10000 10000 10000 10000

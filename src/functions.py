@@ -6,7 +6,6 @@
 #
 # Questions:
 #
-import time
 import sys
 from error import exit_with_error
 
@@ -23,7 +22,9 @@ def parse_run_time(String):
 
         WARNING : This function is delicately sensitive to the exact
                   format of the "Run time : " string. It is not robust
-                  from this aspect.
+                  from this aspect. It also excepts the output from Linux time
+                  "real    "
+                  
     DEBUG:
         1. Spot checked that it can parse the run time
         2. Checked that both error check conditionals work
@@ -44,6 +45,12 @@ def parse_run_time(String):
         elif("Run time :" in string):
             time = float(string.split(" ")[3])
             break
+        elif("real " in string):
+            string = string.split()[1]
+            string = string.split('m')
+            minutes= float(string[0])
+            seconds= float(string[1].split('s')[0])
+            time = minutes*60 + seconds           
     if(time is None):
         exit_with_error("ERROR!!! Incorrectly formatted 'Run time : '\n".format(string))
 

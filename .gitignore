@@ -10,3 +10,4 @@ matrix_multiply_non_cache_opt
 *.pyc
 *.fq
 tophat_out
+output

@@ -10,6 +10,8 @@
 #
 import time
 import sys
+import os
+import glob
 import numpy as np
 import subprocess
 from error import exit_with_error
@@ -34,6 +36,7 @@ def print_help(Arg):
             "             = 'mat_mult_cache_opt'     : Run matrix_multiply_cache_opt tests\n"
             "             = 'mat_mult_non_cache_opt' : Run matrix_multiply_cache_opt tests\n"
             "             = 'build_rnaseq_data'      : Creates single end RNA-Seq data\n"
+            "             = 'align_rnaseq_data'      : Align samples in data/rnaseq\n"
             "             = 'local_memory_access'    : grep's a large file in temp\n"
             "   NOTE : Only one option can be passed at a time.\n"
             )
@@ -72,7 +75,8 @@ def main():
 
     if(options != 'all' and options != 'mat_mult_cache_opt' and 
        options != 'mat_mult_non_cache_opt' and options != 'local_memory_access' and
-       options != 'build_mat_mult_data' and options != 'build_rnaseq_data' 
+       options != 'build_mat_mult_data' and options != 'build_rnaseq_data' and
+       options != 'align_rnaseq_data'
     ):
         exit_with_error("ERROR!!! {} is invalid option\n")
 
@@ -154,9 +158,11 @@ def main():
         print("--------------------------------------------------------")
         nThread = 1
         nSamp   = 3
-        outDir = "~/Code/Singularity/benchmarking/data/rnaseq/fastq/"
-        gtf="~/Code/Singularity/benchmarking/src/simulate_fastq_data/data/chr1_short.gtf"
-        genome ="~/Code/Singularity/benchmarking/src/simulate_fastq_data/data/chr1_short.fa" 
+        treatSampL = []
+        wtSampL = []
+        outDir  = "/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/data/rnaseq/fastq/"
+        gtf="/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/src/simulate_fastq_data/data/chr1_short.gtf"
+        genome ="/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/src/simulate_fastq_data/data/chr1_short.fa" 
         configL=["config/config_wt_chr1.txt", "config/config_treat_chr1.txt"]
         #gtf="/reference/homo_sapiens/GRCh38/ensembl/release-83/Annotation/Genes/gtf/Homo_sapiens.GRCh38.83.gtf"
         #genome ="/reference/homo_sapiens/GRCh38/ensembl/release-83/Sequence/WholeGenomeFasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
@@ -169,11 +175,17 @@ def main():
                 for samp in range(nSamp):
                     ## Set output files
                     if("treat" in config):
-                        outFile = "{}/treat_{}_{}".format(outDir,size,samp)
+                        if(not os.path.isdir("{}/{}".format(outDir,size))):
+                            os.mkdir("{}/{}".format(outDir,size))
+                        outFile = "{}/{}/treat_{}".format(outDir,size,samp)
+                        treatSampL.append(outFile)
                     elif("wt" in config):
-                        outFile = "{}/wt_{}_{}".format(outDir,size,samp)
+                        if(not os.path.isdir("{}/{}".format(outDir,size))):
+                            os.mkdir("{}/{}".format(outDir,size))
+                        outFile = "{}/{}/wt_{}".format(outDir,size,samp)
+                        wtSampL.append(outFile)
                     else:
-                        exit_with_error("ERROR!!! No correct configuration file found!\n")
+                        exit_with_error("ERROR!!! No correct config file found!\n")
                     cmd =  ("export OMP_NUM_THREADS={}; "
                        "python3 src/simulate_fastq_data/simulate_fastq.py "
                        "{} {} {} {} {} single"
@@ -186,6 +198,44 @@ def main():
                   np.mean(runTimeV), np.std(runTimeV)))
             print("--------------------------------------------------------")
 
+
+    if(options == 'all' or options == 'align_rnaseq_data'):
+        print("Aligning RNA-Seq Data sets with tophat : ")
+        print("--------------------------------------------------------")
+        print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
+              "stdev"))
+        print("--------------------------------------------------------")
+        outDirPref = "/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/output/rnaseq/tophat" ##prefix
+        inDirPref  = "/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/data/rnaseq/fastq/"   ## prefix
+        ## Loop
+        for size in rnaSeqSizeL:
+            sampFileL   = glob.glob("{}/{}/*.fq".format(inDirPref,size))
+            if(not os.path.isdir("{}/{}".format(outDirPref,size))):
+                os.mkdir("{}/{}".format(outDirPref,size))
+
+            for nThread in ompNumThreadsL:
+                runTimeV = np.zeros([len(sampFileL)])
+                tIdx = 0
+                for samp in sampFileL:
+                    sampDir = samp.split("/")[-1].split(".")[0]
+                    ## Set output directory
+                    outDir = "{}/{}/{}".format(outDirPref,size,sampDir)
+                    cmd =  (
+                        "time tophat2 -p {} -o {} /reference/homo_sapiens/GRCh38/ensembl/release-83/Sequence/Bowtie2Index/Homo_sapiens.GRC38 {}"
+                       "".format(nThread, outDir, samp))
+                    output = subprocess.getoutput(cmd)
+                    runTime = parse_run_time(output) # Run time
+                    runTimeV[tIdx]= runTime
+                    tIdx = tIdx + 1
+                print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
+                      np.mean(runTimeV), np.std(runTimeV)))
+                print("--------------------------------------------------------")
+
+
+
+
+
+#tophat2 -o poop -p 8 /reference/homo_sapiens/GRCh38/ensembl/release-83/Sequence/Bowtie2Index/Homo_sapiens.GRC38 poop.fq
 
 
 

@@ -446,6 +446,8 @@ class INSERT:
                             strand in the sense direction work.
 
             2. Tested ENST00000488147 for the reverse strand of DNA
+               --> Spot checked on ensembl reads with 1 or 2 exons. 
+                   Appears to work, but there is a bug (see below)
 
         FUTURE: 
             1. Check that the Read 2 is correctly handled.

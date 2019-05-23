@@ -135,6 +135,13 @@ def main():
     ):
         exit_with_error("ERROR!!! Incorrect value for {}".format(readType))
     else:
+        ### Paired end reads are not working yet ###
+        if(readType != 'paired-fr-first' and readType != 'paired-fr-second')
+            exit_with_error("ERROR!!! paired-fr-first and paired-fr-second \n"
+                            "not yet implemented. \n\n"
+                            "NOTE:: Both reads are tentatively found in the \n"
+                            "       INSERT class. The second read is not used.\n"
+                            "       The second read should definitely needs checked.\n")
         create_fastq_file(pathToFastq, desiredTransList, abundanceList, numOfReads,
                           readLength, transDict, transList, exonList, readType)
        

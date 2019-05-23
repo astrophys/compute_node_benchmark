@@ -127,7 +127,6 @@ def main():
     print_gtf_statistics(exonList, transList, geneList)
     # find_trans_that_differ_by_1_exon(geneList, transList) # Uncomment for complete list
     readLength, desiredTransList, abundanceList, numOfReads = read_config(pathToConfig)
-    #random.seed(42)
 
     numOfReads = int(sys.argv[4])
 

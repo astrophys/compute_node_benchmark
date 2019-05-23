@@ -1,5 +1,7 @@
 Did:
 
+   
+
 To Do:
 2. Install modern gcc like 7.0 or 8.0
 3. Figure out how to handle arbitrary number of cores in a machine for testing
@@ -21,6 +23,6 @@ To Do:
     --> Not effective for debugging.
 15. Check that my reads are correctly mapping to the transcripts: 
     Single exons : 
-    awk 'BEGIN{LINE=int(944333/60+2); CHAR=int(944333%60); LEN=60; READLEN=50; REMAIN=READLEN-(LEN-CHAR)-1; print LINE " "CHAR " " REMAIN}{if(NR==LINE){print substr($0,CHAR,60); if(REMAIN>0){getline; print substr($0,1,REMAIN) }}}' ~/Code/Python/simulate_fastq_data/validate/data/chr1_short.fa
 16. Fix number of reads at CL vs. config.txt
 17. Check that I handle direction correctly (+/-) in ensembl's gtf format correctly
+18. Change nomenclature from forward/reverse sense/antisense strand

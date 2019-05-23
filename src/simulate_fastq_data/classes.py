@@ -442,8 +442,16 @@ class INSERT:
                grep `bash src/simulate_fastq_data/extract_read.sh 935894 935772 \
                      935896 939040 939129` tmp.fq
 
+               CONCLUSION : single end reads of transcripts/inserts on the '+'
+                            strand in the sense direction work.
+
+            2. Tested ENST00000488147 for the reverse strand of DNA
+
         FUTURE: 
             1. Check that the Read 2 is correctly handled.
+            2. BUG!!! The start and stop values put in the metadata when using
+                      a transcript that is on the reverse strand is wrong. This 
+                      needs fixed!
         """
         self.seq    = None        # str, sequence
         self.chrm   = None        # str, Chromosome
@@ -453,6 +461,10 @@ class INSERT:
         self.geneID = None        # str, nominal geneID, but may belong to multiple genes
         self.transID = None       # str, nominal transID, may belong to mult. trans.
         self.transNum= None       # str, only number portion of transID for sorting by transcript num
+        if(StopWrtTrans - StartWrtTrans < ReadLength):
+            exit_with_error("ERROR!! StopWrtTrans - StartWrtTrans ({}) < "
+                            "ReadLength ({})\n".format(StopWrtTrans - StartWrtTrans,
+                            ReadLength))
         # type check
         if(not isinstance(Transcript, TRANSCRIPT)):
             exit_with_error("ERROR! Transcript is not of class type TRANSCRIPT 2\n")
@@ -486,14 +498,26 @@ class INSERT:
         insertStart = 0
         insertStop  = 0
         exonL = [ExonList[idx] for idx in self.transcript.exonIdxList]
-        exonL = sorted(exonL, key=operator.attrgetter('start'))
+        if(Transcript.strand == '+'):     # Forward DNA strand
+            exonL = sorted(exonL, key=operator.attrgetter('start'))
+        elif(Transcript.strand == '-'):   # Reverse DNA strand
+            exonL = sorted(exonL, key=operator.attrgetter('start'), reverse=True)
+        else:
+            exit_with_error("ERROR!! invalid value for Transcript.strand : {}".format(
+                            Transcript.strand))
         exonSpanL= [] # List of exons spanned by insert
+        # Read 1
         r1StartWrtTrans = StartWrtTrans 
         r1StopWrtTrans  = StartWrtTrans + ReadLength - 1 
         r1ExonSpanL = []
+        r1Start = None
+        r1Stop  = None
+        # Read 2
         r2StartWrtTrans = StopWrtTrans
         r2StopWrtTrans  = StopWrtTrans - ReadLength + 1 
         r2ExonSpanL = []
+        r2Start = None
+        r2Stop  = None
 
         # Get all exons spanned by insert and reads 1 & 2.
         for exon in exonL:
@@ -522,7 +546,9 @@ class INSERT:
                 r1ExonSpanL.append(exon)
             ## Insert ends in exon
             if(r1StopWrtTrans >= exonStart and r1StopWrtTrans <= exonStop):
-                r1ExonSpanL.append(exon)
+                # Prevent duplicates
+                if(exon not in r1ExonSpanL):
+                    r1ExonSpanL.append(exon)
                 r1Stop = exon.start + (r1StopWrtTrans - exonStart)
 
             ##### Read 2 #####
@@ -535,11 +561,31 @@ class INSERT:
                 r2ExonSpanL.append(exon)
             ## Insert ends in exon
             if(r2StartWrtTrans >= exonStart and r2StartWrtTrans <= exonStop):
-                r2ExonSpanL.append(exon)
+                if(exon not in r2ExonSpanL):
+                    r2ExonSpanL.append(exon)
                 r2Start = exon.start + (r2StartWrtTrans - exonStart)
 
             transPos = transPos + len(exon.seq)
 
+        ## Error Check ##
+        if(len(r1ExonSpanL) == 0):
+            exit_with_error("ERROR! Read 1 does _not_ span any exons!\n")
+        if(len(r2ExonSpanL) == 0):
+            exit_with_error("ERROR! Read 2 does _not_ span any exons!\n")
+        if(r1Start is None or r1Stop is None or r2Start is None or r2Stop is None):
+            exit_with_error("ERROR!! Invalid trans={}, r1Start,r1Stop,r2Start,r2Stop = "
+                            "{},{},{},{}\n".format(Transcript.transID,r1Start,r1Stop,
+                            r2Start,r2Stop))
+        # Check for duplicate exons (bad!)
+        if(len(r1ExonSpanL) != len(set(r1ExonSpanL))):
+            exit_with_error("ERROR!! len(r1ExonSpanL) {} != "
+                            "len(set(r1ExonSpanL)) {}\n".format(len(r1ExonSpanL),
+                            len(set(r1ExonSpanL))))
+        if(len(r2ExonSpanL) != len(set(r2ExonSpanL))):
+            exit_with_error("ERROR!! len(r2ExonSpanL) {} != "
+                            "len(set(r2ExonSpanL)) {}\n".format(len(r2ExonSpanL),
+                            len(set(r2ExonSpanL))))
+            
         self.start = insertStart    ## In chromosome coords
         self.stop  = insertStop     ## In chromosome coords
         self.exonL = exonSpanL      ## Exons spanned
@@ -552,11 +598,6 @@ class INSERT:
         self.r2Stop  = r2Stop       ## In chromosome coords
         self.r2ExonL = r2ExonSpanL  ## Exons spanned
         
-        if(len(self.r1ExonL) == 0):
-            exit_with_error("ERROR! Read 1 does _not_ span any exons!\n")
-        if(len(self.r2ExonL) == 0):
-            exit_with_error("ERROR! Read 2 does _not_ span any exons!\n")
-            
 
 
 class EXON:

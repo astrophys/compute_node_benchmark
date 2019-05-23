@@ -246,6 +246,9 @@ def get_exon_seq(exonList, chrmList):
                     exon.seq = chrm.seq[start:end]
                 elif(exon.strand == '-'):
                     exon.seq = reverse_complement(chrm.seq[start:end])
+                    tmp = exon.start
+                    exon.start = exon.stop
+                    exon.stop  = tmp
                 else:
                     exit_with_error("ERROR! strand char = %s is invalid", exon.strand)
     timeEnd = datetime.datetime.now()
@@ -335,10 +338,13 @@ def link_exons_trans_and_genes(gtfList, exonList, transList, geneList):
         than previous versions.
 
     DEBUG: 
-        I validated by using print_transcripts_with_seqs() and comparing against the
-        biomart download for chromosome 1. My data file was _identical_ to biomart's. 
+        1. I validated by using print_transcripts_with_seqs() and comparing against the
+           biomart download for chromosome 1. My data file was _identical_ to biomart's. 
 
-        For how this was done, see the debug comment in print_transcripts_with_seqs() 
+           For how this was done, see the debug comment in print_transcripts_with_seqs() 
+        2. Checked Transcript.seq for reverse strand ('-') transcript. Used 
+           ENST00000488147 it is correct.
+        
     FUTURE: 
     """ 
     gIdx = 0            # Gene index, for geneList
@@ -414,7 +420,6 @@ def link_exons_trans_and_genes(gtfList, exonList, transList, geneList):
     # Now get transcript sequences.
     for trans in transList:
         trans.seq = ""
-        ### ERROR??? Possible fix needed here to address transcripts on '-' strand
         for eIdx in trans.exonIdxList:
             trans.seq += exonList[eIdx].seq
 
@@ -802,6 +807,8 @@ def create_insert(Transcript = None, ReadLength = None, Mu = None, Sigma = None,
     DEBUG: 
 
     FUTURE: 
+        1. Implement Proper solution where insert going into the Illumina adapter when
+           stop - start < ReadLength
     """
     start = 0
     stop = 0
@@ -818,14 +825,19 @@ def create_insert(Transcript = None, ReadLength = None, Mu = None, Sigma = None,
     while(insertLength < ReadLength):
         start = random.randint (0, transLength -1 )    
         stop = start + int(numpy.random.normal(Mu, Sigma))
-        if (stop > transLength - 1):
-            insert = INSERT(Transcript = Transcript, StartWrtTrans = start,
-                            StopWrtTrans = transLength-1, ReadLength = ReadLength, 
-                            ExonList = ExonList)
-        else:  
-            insert = INSERT(Transcript = Transcript, StartWrtTrans = start,
-                            StopWrtTrans = stop, ReadLength = ReadLength, 
-                            ExonList = ExonList)
+        # Avoid unrealistically short inserts
+        if(stop - start < ReadLength):
+            continue
+        # Avoid inserts that are past end of transcripts.
+        if(stop > transLength - 1):
+            # Proper solution here would have insert going into the Illumina adapter
+            stop = transLength - 1  
+            if(stop - start < ReadLength): # Insert must be at least as large as a read
+                continue
+        insert = INSERT(Transcript = Transcript, StartWrtTrans = start,
+                        StopWrtTrans = stop, ReadLength = ReadLength, 
+                        ExonList = ExonList)
+
         insertLength = len(insert.seq)        
 
     timeEnd = datetime.datetime.now()
@@ -863,10 +875,10 @@ def create_fastq_file(pathToFastq, desiredTransList, abundanceList, nReads,
         Writes fastq file.
 
     DEBUG: 
-        Blasted against ensembl database, spot checked a couple of transcripts.
-        Need further debugging. 
+        1. Blasted against ensembl database, spot checked a couple of transcripts.
+           Need further debugging. 
 
-        Took synthetic_sample.fastq and operated in vim on transcript ENST00000473358:
+           Took synthetic_sample.fastq and operated in vim on transcript ENST00000473358:
             Exons are ordered as : ENSE00001947070 ENSE00001922571 ENSE00001827679
             Copied synthetic_sample.fastq to poop.fq
 
@@ -893,6 +905,10 @@ def create_fastq_file(pathToFastq, desiredTransList, abundanceList, nReads,
                     CONCLUSION : they are identical. Therefor I get the correct start position from the
                                  correct sequences.
                     THEREFOR : I believe that create_fastq_file and FASTQ_READ() are working as expected.
+
+        2. See debug comments of INSERT class.
+           CONCLUSION : single end reads of transcripts/inserts on the '+' strand
+                        in the sense direction work.
 
     FUTURE: 
         Include more error checking for goofy parameters, e.g. not enough reads for

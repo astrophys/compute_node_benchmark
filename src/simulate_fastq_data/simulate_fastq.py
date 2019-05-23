@@ -50,7 +50,7 @@
 #
 import sys
 import re
-import datetime
+import time
 import random
 import copy
 import operator
@@ -98,7 +98,7 @@ def print_help(Exit=1):
 #********************************************************************************
 #********************************************************************************
 def main():
-    timeBegin = datetime.datetime.now()
+    timeBegin = time.time()
     if(len(sys.argv) != 7):
         if(len(sys.argv) > 1 and (sys.argv[1] == "--help" or sys.argv[1] == "-h")):
             print_help(0)
@@ -136,7 +136,7 @@ def main():
         exit_with_error("ERROR!!! Incorrect value for {}".format(readType))
     else:
         ### Paired end reads are not working yet ###
-        if(readType != 'paired-fr-first' and readType != 'paired-fr-second')
+        if(readType == 'paired-fr-first' or readType == 'paired-fr-second'):
             exit_with_error("ERROR!!! paired-fr-first and paired-fr-second \n"
                             "not yet implemented. \n\n"
                             "NOTE:: Both reads are tentatively found in the \n"
@@ -149,7 +149,7 @@ def main():
     print("Unique features in Gtf : ")
     for feature in uniqueFeatureList:
         print("\t%s"%(feature))
-    timeEnd = datetime.datetime.now()
+    timeEnd = time.time()
     print("Run time : %s"%(timeEnd - timeBegin))
     sys.exit(0)
 

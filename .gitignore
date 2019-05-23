@@ -1,4 +1,4 @@
-test.simg
+*.simg
 .*.swp
 *.o
 data

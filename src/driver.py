@@ -33,6 +33,7 @@ def print_help(Arg):
             "             = 'build_mat_mult_data'    : Builds matrix_multiply data \n"
             "             = 'mat_mult_cache_opt'     : Run matrix_multiply_cache_opt tests\n"
             "             = 'mat_mult_non_cache_opt' : Run matrix_multiply_cache_opt tests\n"
+            "             = 'build_rnaseq_data'      : Creates single end RNA-Seq data\n"
             "             = 'local_memory_access'    : grep's a large file in temp\n"
             "   NOTE : Only one option can be passed at a time.\n"
             )
@@ -63,13 +64,15 @@ def main():
     print("Logging run output to driver.log\n\n")
     ### Variables ###
     options     = sys.argv[1]
-    ompNumThreadsL = [1,2,5,7,10,15,20]    ## Cores used in OMP tasks
-    matrixSizeL = [2000,3000,5000]   ## outer dim of mats to run matrix_multiply on
-    nTrials     = 3                        ## number of trials to test,get stdev and mean
+    ompNumThreadsL = [1,2,5,7,10,15,20]  ## Cores used in OMP tasks
+    matrixSizeL = [2000,3000,5000]       ## outer dim of mats to run matrix_multiply on
+    #rnaSeqSizeL = [10**4,10**5,10**6]   
+    rnaSeqSizeL = [2*10**4,10**5]   
+    nTrials     = 3                      ## number of trials to test,get stdev and mean
 
     if(options != 'all' and options != 'mat_mult_cache_opt' and 
        options != 'mat_mult_non_cache_opt' and options != 'local_memory_access' and
-       options != 'build_mat_mult_data' 
+       options != 'build_mat_mult_data' and options != 'build_rnaseq_data' 
     ):
         exit_with_error("ERROR!!! {} is invalid option\n")
 
@@ -141,6 +144,48 @@ def main():
                 print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
                       np.mean(runTimeV), np.std(runTimeV)))
             print("--------------------------------------------------------")
+
+
+    if(options == 'all' or options == 'build_rnaseq_data'):
+        print("Building RNA-Seq Data sets : ")
+        print("--------------------------------------------------------")
+        print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
+              "stdev"))
+        print("--------------------------------------------------------")
+        nThread = 1
+        nSamp   = 3
+        outDir = "~/Code/Singularity/benchmarking/data/rnaseq/fastq/"
+        gtf="~/Code/Singularity/benchmarking/src/simulate_fastq_data/data/chr1_short.gtf"
+        genome ="~/Code/Singularity/benchmarking/src/simulate_fastq_data/data/chr1_short.fa" 
+        configL=["config/config_wt_chr1.txt", "config/config_treat_chr1.txt"]
+        #gtf="/reference/homo_sapiens/GRCh38/ensembl/release-83/Annotation/Genes/gtf/Homo_sapiens.GRCh38.83.gtf"
+        #genome ="/reference/homo_sapiens/GRCh38/ensembl/release-83/Sequence/WholeGenomeFasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
+        #configL=["config/config_wt.txt", "config/config_treat.txt"]
+        ## Loop
+        for size in rnaSeqSizeL:
+            runTimeV = np.zeros([nSamp*len(configL)])
+            tIdx = 0
+            for config in configL:
+                for samp in range(nSamp):
+                    ## Set output files
+                    if("treat" in config):
+                        outFile = "{}/treat_{}_{}".format(outDir,size,samp)
+                    elif("wt" in config):
+                        outFile = "{}/wt_{}_{}".format(outDir,size,samp)
+                    else:
+                        exit_with_error("ERROR!!! No correct configuration file found!\n")
+                    cmd =  ("export OMP_NUM_THREADS={}; "
+                       "python3 src/simulate_fastq_data/simulate_fastq.py "
+                       "{} {} {} {} {} single"
+                       "".format(nThread, gtf, genome, config, size, outFile))
+                    output = subprocess.getoutput(cmd)
+                    runTime = parse_run_time(output) # Run time
+                    runTimeV[tIdx]= runTime
+                    tIdx = tIdx + 1
+            print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
+                  np.mean(runTimeV), np.std(runTimeV)))
+            print("--------------------------------------------------------")
+
 
 
 

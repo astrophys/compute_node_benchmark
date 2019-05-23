@@ -26,3 +26,5 @@ To Do:
 16. Fix number of reads at CL vs. config.txt
 17. Check that I handle direction correctly (+/-) in ensembl's gtf format correctly
 18. Change nomenclature from forward/reverse sense/antisense strand
+
+19. Figure out how to pass shell variables in singularity during build time

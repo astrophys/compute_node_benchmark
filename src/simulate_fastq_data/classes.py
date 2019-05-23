@@ -454,6 +454,9 @@ class INSERT:
             2. BUG!!! The start and stop values put in the metadata when using
                       a transcript that is on the reverse strand is wrong. This 
                       needs fixed!
+            3. Possible BUG : Added conditional to exclude duplicate exons 
+               when exons are completely spanned. If I thought about the equalities
+               harder, the additional conditional would likely be unnecessary
         """
         self.seq    = None        # str, sequence
         self.chrm   = None        # str, Chromosome
@@ -545,7 +548,8 @@ class INSERT:
                 r1Start = exon.start + (r1StartWrtTrans - exonStart)
             ## Insert spans exon
             if(r1StartWrtTrans <= exonStart and r1StopWrtTrans >= exonStop):
-                r1ExonSpanL.append(exon)
+                if(exon not in r1ExonSpanL):
+                    r1ExonSpanL.append(exon)
             ## Insert ends in exon
             if(r1StopWrtTrans >= exonStart and r1StopWrtTrans <= exonStop):
                 # Prevent duplicates
@@ -560,7 +564,8 @@ class INSERT:
                 r2Stop = exon.start + (r2StopWrtTrans - exonStart)
             ## Insert spans exon
             if(r2StopWrtTrans <= exonStart and r2StartWrtTrans >= exonStop):
-                r2ExonSpanL.append(exon)
+                if(exon not in r2ExonSpanL):
+                    r2ExonSpanL.append(exon)
             ## Insert ends in exon
             if(r2StartWrtTrans >= exonStart and r2StartWrtTrans <= exonStop):
                 if(exon not in r2ExonSpanL):
@@ -580,13 +585,13 @@ class INSERT:
                             r2Start,r2Stop))
         # Check for duplicate exons (bad!)
         if(len(r1ExonSpanL) != len(set(r1ExonSpanL))):
-            exit_with_error("ERROR!! len(r1ExonSpanL) {} != "
-                            "len(set(r1ExonSpanL)) {}\n".format(len(r1ExonSpanL),
-                            len(set(r1ExonSpanL))))
+            exit_with_error("ERROR!! {} : len(r1ExonSpanL) {} != "
+                            "len(set(r1ExonSpanL)) {}\n".format(Transcript.transID,
+                            len(r1ExonSpanL),len(set(r1ExonSpanL))))
         if(len(r2ExonSpanL) != len(set(r2ExonSpanL))):
-            exit_with_error("ERROR!! len(r2ExonSpanL) {} != "
-                            "len(set(r2ExonSpanL)) {}\n".format(len(r2ExonSpanL),
-                            len(set(r2ExonSpanL))))
+            exit_with_error("ERROR!! {} : len(r2ExonSpanL) {} != "
+                            "len(set(r2ExonSpanL)) {}\n".format(Transcript.transID,
+                            len(r2ExonSpanL),len(set(r2ExonSpanL))))
             
         self.start = insertStart    ## In chromosome coords
         self.stop  = insertStop     ## In chromosome coords

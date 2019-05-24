@@ -29,3 +29,4 @@ To Do:
 19. Figure out how to pass shell variables in singularity during build time
 20. Create config files for Baker, Singularity and OSX that points to the correct
     dirs to use. This will eliminate the non-portable hassel of changing pathnames
+21. Consider adding nTrials to cuffmerge.

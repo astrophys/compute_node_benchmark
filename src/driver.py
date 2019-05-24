@@ -39,6 +39,7 @@ def print_help(Arg):
             "             = 'align_rnaseq_tophat'    : Align samples in data/rnaseq w/ tophat\n"
             "             = 'align_rnaseq_hisat'     : Align samples in data/rnaseq w/ hisat\n"
             "             = 'cufflinks_assemble'     : Must have run tophat. Assembles transcriptome\n"
+            "             = 'cuffmerge'              : Must have run tophat and cufflinks\n"
             "             = 'local_memory_access'    : grep's a large file in temp\n"
             "   NOTE : Only one option can be passed at a time.\n"
             )
@@ -72,14 +73,14 @@ def main():
     ompNumThreadsL = [1,2,5,7,10,15,20]  ## Cores used in OMP tasks
     matrixSizeL = [2000,3000,5000]       ## outer dim of mats to run matrix_multiply on
     #rnaSeqSizeL = [10**4,10**5,10**6]   
-    rnaSeqSizeL = [2*10**4,10**5]   
+    rnaSeqSizeL = [2*10**4,10**5]
     nTrials     = 3                      ## number of trials to test,get stdev and mean
 
     if(options != 'all' and options != 'mat_mult_cache_opt' and 
        options != 'mat_mult_non_cache_opt' and options != 'local_memory_access' and
        options != 'build_mat_mult_data' and options != 'build_rnaseq_data' and
        options != 'align_rnaseq_tophat' and options != 'align_rnaseq_hisat' and
-       options != 'cufflinks_assemble'
+       options != 'cufflinks_assemble'  and options != 'cuffmerge'
     ):
         exit_with_error("ERROR!!! {} is invalid option\n")
 
@@ -308,11 +309,49 @@ def main():
                 print("--------------------------------------------------------")
 
 
+    if(options == 'all' or options == 'cuffmerge'):
+        print("Merging assembled transcriptomes using cuffmerge")
+        print("--------------------------------------------------------")
+        print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
+              "stdev"))
+        print("--------------------------------------------------------")
+        outDirPref = os.path.abspath("output/rnaseq/cuffmerge") ## prefix
+        inDirPref  = os.path.abspath("output/rnaseq/cufflinks")   ## prefix
+        gtf="/Users/asnedden/Downloads/software/Homo_sapiens.GRCh38.96.gtf"
+        genome="/Users/asnedden/Downloads/software/Homo_sapiens.GRCh38.96.gtf"
+        ## Loop
+        for size in rnaSeqSizeL:
+            sampFileL   = glob.glob("{}/{}/*/transcripts.gtf".format(inDirPref,size))
+            outDir = "{}/{}".format(outDirPref,size)
+
+            if(not os.path.isdir(outDir)):
+                os.mkdir(outDir)
+            assemblyPath = "{}/assemblies.txt".format(outDir)
+            if(not os.path.isfile(assemblyPath)):
+                assemblyFile = open(assemblyPath, "w+")
+                for samp in sampFileL:
+                    assemblyFile.write("{}\n".format(samp))
+
+            for nThread in [4]:#ompNumThreadsL:     ### FIX later
+                ## Consider adding nTrials here.
+                runTimeV = np.zeros([1])
+                tIdx = 0
+                cmd =  (
+                    "source ~/.local/virtualenvs/python2.7/bin/activate; time  cuffmerge --num-threads {} -o {} --ref-gtf {} --ref-sequence {} {}"
+                   "".format(nThread, outDir, gtf, genome, assemblyPath))
+                output = subprocess.getoutput(cmd)
+                runTime = parse_run_time(output) # Run time
+                runTimeV[tIdx]= runTime
+                tIdx = tIdx + 1
+                print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
+                      np.mean(runTimeV), np.std(runTimeV)))
+                print("--------------------------------------------------------")
 
 
 
 
-#tophat2 -o poop -p 8 /reference/homo_sapiens/GRCh38/ensembl/release-83/Sequence/Bowtie2Index/Homo_sapiens.GRC38 poop.fq
+
+
 
 
 

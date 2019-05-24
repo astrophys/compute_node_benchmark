@@ -40,17 +40,18 @@ def parse_run_time(String):
 
     # Parse
     for string in stringL:
-        if("ERROR" in string):
+        if("ERROR" in string or "command not found" in string):
             exit_with_error("{}\n".format(string))
         elif("Run time :" in string):
             time = float(string.split(" ")[3])
             break
-        elif("real " in string):
+        elif("real\t" in string):
             string = string.split()[1]
             string = string.split('m')
             minutes= float(string[0])
             seconds= float(string[1].split('s')[0])
-            time = minutes*60 + seconds           
+            time = minutes*60 + seconds
+            break
     if(time is None):
         exit_with_error("ERROR!!! Incorrectly formatted 'Run time : '\n".format(string))
 

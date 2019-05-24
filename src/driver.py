@@ -36,7 +36,8 @@ def print_help(Arg):
             "             = 'mat_mult_cache_opt'     : Run matrix_multiply_cache_opt tests\n"
             "             = 'mat_mult_non_cache_opt' : Run matrix_multiply_cache_opt tests\n"
             "             = 'build_rnaseq_data'      : Creates single end RNA-Seq data\n"
-            "             = 'align_rnaseq_data'      : Align samples in data/rnaseq\n"
+            "             = 'align_rnaseq_tophat'    : Align samples in data/rnaseq w/ tophat\n"
+            "             = 'align_rnaseq_hisat'     : Align samples in data/rnaseq w/ hisat\n"
             "             = 'local_memory_access'    : grep's a large file in temp\n"
             "   NOTE : Only one option can be passed at a time.\n"
             )
@@ -76,7 +77,7 @@ def main():
     if(options != 'all' and options != 'mat_mult_cache_opt' and 
        options != 'mat_mult_non_cache_opt' and options != 'local_memory_access' and
        options != 'build_mat_mult_data' and options != 'build_rnaseq_data' and
-       options != 'align_rnaseq_data'
+       options != 'align_rnaseq_tophat' and options != 'align_rnaseq_hisat'
     ):
         exit_with_error("ERROR!!! {} is invalid option\n")
 
@@ -199,14 +200,15 @@ def main():
             print("--------------------------------------------------------")
 
 
-    if(options == 'all' or options == 'align_rnaseq_data'):
+    if(options == 'all' or options == 'align_rnaseq_tophat'):
         print("Aligning RNA-Seq Data sets with tophat : ")
         print("--------------------------------------------------------")
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))
         print("--------------------------------------------------------")
-        outDirPref = "/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/output/rnaseq/tophat" ##prefix
-        inDirPref  = "/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/data/rnaseq/fastq/"   ## prefix
+        outDirPref = os.path.abspath("output/rnaseq/tophat") #"/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/output/rnaseq/tophat" ##prefix
+        inDirPref  = os.path.abspath("data/rnaseq/fastq") #"/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/data/rnaseq/fastq/"   ## prefix
+        bowtieIdxPath = "/Users/asnedden/Downloads/software/Bowtie2Index/Homo_sapiens.GRC38"
         ## Loop
         for size in rnaSeqSizeL:
             sampFileL   = glob.glob("{}/{}/*.fq".format(inDirPref,size))
@@ -221,8 +223,44 @@ def main():
                     ## Set output directory
                     outDir = "{}/{}/{}".format(outDirPref,size,sampDir)
                     cmd =  (
-                        "time tophat2 -p {} -o {} /reference/homo_sapiens/GRCh38/ensembl/release-83/Sequence/Bowtie2Index/Homo_sapiens.GRC38 {}"
-                       "".format(nThread, outDir, samp))
+                        "source ~/.local/virtualenvs/python2.7/bin/activate; time tophat2 -p {} -o {} {} {}"
+                       "".format(nThread, outDir, bowtieIdxPath, samp))
+                    output = subprocess.getoutput(cmd)
+                    runTime = parse_run_time(output) # Run time
+                    runTimeV[tIdx]= runTime
+                    tIdx = tIdx + 1
+                print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
+                      np.mean(runTimeV), np.std(runTimeV)))
+                print("--------------------------------------------------------")
+
+
+    if(options == 'all' or options == 'align_rnaseq_hisat'):
+        print("Aligning RNA-Seq Data sets with hisat : ")
+        print("--------------------------------------------------------")
+        print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
+              "stdev"))
+        print("--------------------------------------------------------")
+        outDirPref = os.path.abspath("output/rnaseq/hisat") ## prefix
+        inDirPref  = os.path.abspath("data/rnaseq/fastq")   ## prefix
+        bowtieIdxPath = "/Users/asnedden/Downloads/software/HisatIndex/genome"
+        ## Loop
+        for size in rnaSeqSizeL:
+            sampFileL   = glob.glob("{}/{}/*.fq".format(inDirPref,size))
+            if(not os.path.isdir("{}/{}".format(outDirPref,size))):
+                os.mkdir("{}/{}".format(outDirPref,size))
+
+            for nThread in ompNumThreadsL:
+                runTimeV = np.zeros([len(sampFileL)])
+                tIdx = 0
+                for samp in sampFileL:
+                    sampDir = samp.split("/")[-1].split(".")[0]
+                    ## Set output directory
+                    outDir = "{}/{}/{}".format(outDirPref,size,sampDir)
+                    if(not os.path.isdir(outDir)):
+                        os.mkdir(outDir)
+                    cmd =  (
+                        "time hisat2 -p {} --phred33 -x {} -U {} -S {}/output.sam"
+                       "".format(nThread, bowtieIdxPath, samp, outDir))
                     output = subprocess.getoutput(cmd)
                     runTime = parse_run_time(output) # Run time
                     runTimeV[tIdx]= runTime

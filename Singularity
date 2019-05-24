@@ -32,6 +32,8 @@ Put Help here
 /gpfs0/home/gdhpcgroup/aps003/Code/Singularity/benchmarking /tmp
 /reference/homo_sapiens/GRCh38/ensembl/release-83/Annotation/Genes/gtf/Homo_sapiens.GRCh38.83.gtf /tmp
 /reference/homo_sapiens/GRCh38/ensembl/release-83/Sequence/WholeGenomeFasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa /tmp
+# Copy bowtie2 indices here
+# Copy hisat2 indices here
 
 #%labels
 #    Author: Ali Snedden
@@ -129,6 +131,8 @@ Put Help here
     # This is expensive - I should really just copy it
     /opt/software/bowtie2-2.3.5.1/bowtie2-build Homo_sapiens.GRCh38.dna.primary_assembly.fa Homo_sapiens.GRC38
     ### Uncomment if this isn't locally located ###
+    #wget ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38.tar.gz
+    #wget ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_genbank/Eukaryotes/vertebrates_mammals/Homo_sapiens/GRCh38/seqs_for_alignment_pipelines/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
     #wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-96/gtf/homo_sapiens/Homo_sapiens.GRCh38.96.gtf.gz
     #gunzip Homo_sapiens.GRCh38.96.gtf.gz
     #wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-96/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz

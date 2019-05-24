@@ -38,6 +38,7 @@ def print_help(Arg):
             "             = 'build_rnaseq_data'      : Creates single end RNA-Seq data\n"
             "             = 'align_rnaseq_tophat'    : Align samples in data/rnaseq w/ tophat\n"
             "             = 'align_rnaseq_hisat'     : Align samples in data/rnaseq w/ hisat\n"
+            "             = 'cufflinks_assemble'     : Must have run tophat. Assembles transcriptome\n"
             "             = 'local_memory_access'    : grep's a large file in temp\n"
             "   NOTE : Only one option can be passed at a time.\n"
             )
@@ -77,7 +78,8 @@ def main():
     if(options != 'all' and options != 'mat_mult_cache_opt' and 
        options != 'mat_mult_non_cache_opt' and options != 'local_memory_access' and
        options != 'build_mat_mult_data' and options != 'build_rnaseq_data' and
-       options != 'align_rnaseq_tophat' and options != 'align_rnaseq_hisat'
+       options != 'align_rnaseq_tophat' and options != 'align_rnaseq_hisat' and
+       options != 'cufflinks_assemble'
     ):
         exit_with_error("ERROR!!! {} is invalid option\n")
 
@@ -268,6 +270,43 @@ def main():
                 print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
                       np.mean(runTimeV), np.std(runTimeV)))
                 print("--------------------------------------------------------")
+
+
+    if(options == 'all' or options == 'cufflinks_assemble'):
+        print("Assembling transcriptome using cufflinks: ")
+        print("--------------------------------------------------------")
+        print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
+              "stdev"))
+        print("--------------------------------------------------------")
+        outDirPref = os.path.abspath("output/rnaseq/cufflinks") ## prefix
+        inDirPref  = os.path.abspath("output/rnaseq/tophat")   ## prefix
+        gtf="/Users/asnedden/Downloads/software/Homo_sapiens.GRCh38.96.gtf"
+        ## Loop
+        for size in rnaSeqSizeL:
+            sampFileL   = glob.glob("{}/{}/*/accepted_hits.bam".format(inDirPref,size))
+            if(not os.path.isdir("{}/{}".format(outDirPref,size))):
+                os.mkdir("{}/{}".format(outDirPref,size))
+
+            for nThread in ompNumThreadsL:
+                runTimeV = np.zeros([len(sampFileL)])
+                tIdx = 0
+                for samp in sampFileL:
+                    sampDir = samp.split("/")[-2].split(".")[0]
+                    ## Set output directory
+                    outDir = "{}/{}/{}".format(outDirPref,size,sampDir)
+                    if(not os.path.isdir(outDir)):
+                        os.mkdir(outDir)
+                    cmd =  (
+                        "time cufflinks --num-threads {} -g {} --output-dir {} {}"
+                       "".format(nThread, gtf, outDir, samp))
+                    output = subprocess.getoutput(cmd)
+                    runTime = parse_run_time(output) # Run time
+                    runTimeV[tIdx]= runTime
+                    tIdx = tIdx + 1
+                print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
+                      np.mean(runTimeV), np.std(runTimeV)))
+                print("--------------------------------------------------------")
+
 
 
 

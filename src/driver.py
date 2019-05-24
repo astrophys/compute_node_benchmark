@@ -332,7 +332,7 @@ def main():
                 for samp in sampFileL:
                     assemblyFile.write("{}\n".format(samp))
 
-            for nThread in [4]:#ompNumThreadsL:     ### FIX later
+            for nThread in ompNumThreadsL:
                 ## Consider adding nTrials here.
                 runTimeV = np.zeros([1])
                 tIdx = 0

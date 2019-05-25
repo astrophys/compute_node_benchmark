@@ -153,6 +153,7 @@ Put Help here
 
     # Generate files to run - This won't work here b/c it will try to write files to a directory and recall Singularity images cannot modify themselves in runscript. Recall we can use SINGULARITYENV_PATH
     ## I think python3 src/driver.py all will replace below code - be sure it writes, reads, and cleans up tmp 
+    mkdir /tmp/benchmarking_out
     echo "Creating 2000 10000 10000 2000 files"
     mkdir -p data/2000/output
     python3 src/matrix/matrix_generator.py 2000 10000 10000 2000
@@ -184,6 +185,8 @@ Put Help here
     mkdir -p data/rnaseq/fastq
     mkdir -p output/rnaseq/tophat
     mkdir -p output/rnaseq/hisat
+    mkdir -p output/rnaseq/cufflinks
+    mkdir -p output/rnaseq/cuffmerge
     #echo "Creating 10000 10000 10000 10000 files"
     #mkdir -p data/10000/output
     #python3 src/matrix/matrix_generator.py 10000 10000 10000 10000

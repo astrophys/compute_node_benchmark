@@ -30,7 +30,7 @@ def print_help(Arg):
     FUTURE:
     """
     sys.stdout.write(
-            "USAGE : ./src/driver.py [options]\n"
+            "USAGE : ./src/driver.py [options] /abs/path/to/workspace  /abs/path/to/ref\n"
             "   [options] = 'all' : Builds data, runs all tests\n"
             "             = 'build_mat_mult_data'    : Builds matrix_multiply data \n"
             "             = 'mat_mult_cache_opt'     : Run matrix_multiply_cache_opt tests\n"
@@ -41,7 +41,20 @@ def print_help(Arg):
             "             = 'cufflinks_assemble'     : Must have run tophat. Assembles transcriptome\n"
             "             = 'cuffmerge'              : Must have run tophat and cufflinks\n"
             "             = 'local_memory_access'    : grep's a large file in temp\n"
-            "   NOTE : Only one option can be passed at a time.\n"
+            "   /abs/path/to/workspace    : Path where all the output/data gets saved.\n"
+            "   /abs/path/to/ref          : Path where bowtie/hisat indices and ref fasta/gtf"
+            "                               are stored\n\n"
+            "   NOTES : \n"
+            "       1. Only one option can be passed at a time.\n"
+            "       2. It is assumed that all exectuables (i.e. tophat2, bowtie2, etc.)\n"
+            "          are located in you shell PATH\n"
+            "       3. Location / Names of references _must_ be :\n"
+            "          a) Bowtie2 indices: /refPath/Bowtie2Index/Homo_sapiens.GRC38 \n"
+            "          b) Hisat2 indices : /refPath/HisatIndex/genome \n"
+            "          c) Genome Fasta   : /refPath/Homo_sapiens.GRCh38.dna.primary_assembly.fa:\n"
+            "          d) GTF file       : /refPath/Homo_sapiens.GRCh38.96.gtf\n"
+            "          e) Short Chr1 Gtf : /refPath/chr1_short.gtf\n"
+            "          f) Short Chr1 fasta : /refPath/chr1_short.fa\n"
             )
     sys.exit(Arg)
 
@@ -49,6 +62,7 @@ def print_help(Arg):
 def main():
     """
     ARGS:
+
     RETURN:
     DESCRIPTION:
     NOTES:
@@ -62,23 +76,26 @@ def main():
     nArg = len(sys.argv)
     if(nArg == 2 and (sys.argv[1][0:3] == "--h" or sys.argv[1][0:2] == "-h")):
         print_help(0)
-    elif(nArg != 2):
+    elif(nArg != 4):
         print_help(1)
     startTime = time.time()
     print("Start Time : {}".format(time.strftime("%a, %d %b %Y %H:%M:%S ",
                                    time.localtime())))
     print("Logging run output to driver.log\n\n")
     ### Variables ###
-    options     = sys.argv[1]
-    ompNumThreadsL = [1,2,5,7,10,15,20]  ## Cores used in OMP tasks
-    matrixSizeL = [2000,3000,5000]       ## outer dim of mats to run matrix_multiply on
+    options    = sys.argv[1]
+    workPath   = sys.argv[2]           # Path where all the output/work will be saved.
+    refPath    = sys.argv[3]           # Path where all the ref data and indices are located
+    ompNumThreadsL = [1,2,5,7,10,15,20] # Cores used in OMP tasks
+    matrixSizeL = [2000,3000,5000]      # outer dim of mats to run matrix_multiply on
+    #matrixSizeL = [2000,3000]      # outer dim of mats to run matrix_multiply on
     #rnaSeqSizeL = [10**4,10**5,10**6]   
     rnaSeqSizeL = [2*10**4,10**5]
-    nTrials     = 3                      ## number of trials to test,get stdev and mean
+    nTrials     = 3                     # number of trials to test,get stdev and mean
 
-    if(options != 'all' and options != 'mat_mult_cache_opt' and 
+    if(options != 'all' and options != 'build_mat_mult_data' and 
        options != 'mat_mult_non_cache_opt' and options != 'local_memory_access' and
-       options != 'build_mat_mult_data' and options != 'build_rnaseq_data' and
+       options != 'mat_mult_cache_opt' and options != 'build_rnaseq_data' and
        options != 'align_rnaseq_tophat' and options != 'align_rnaseq_hisat' and
        options != 'cufflinks_assemble'  and options != 'cuffmerge'
     ):
@@ -88,15 +105,22 @@ def main():
     ######## Run Tests ########
     if(options == 'all' or options == 'build_mat_mult_data'):
         nThread = 1
-        print("building data for matrix_multiply : ")
+        print("Building data for matrix_multiply (time to run is for numpy's matrix mult.: ")
         print("--------------------------------------------------------")
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))
         print("--------------------------------------------------------")
+        ### Create directory structure in data
+        outDirPrefix = "{}/data/matrix".format(workPath)
+        if(not os.path.isdir(outDirPrefix)):
+            os.mkdir(outDirPrefix)
+
         for size in matrixSizeL:
-            outDir = "data/{}".format(size)
+            outDir = "{}/{}".format(outDirPrefix,size)
+            if(not os.path.isdir(outDir)):
+                os.mkdir(outDir)
             runTimeV = np.zeros([nTrials])
-            for tIdx in range(nTrials):
+            for tIdx in range(nTrials):   ### change to nTrials
                 cmd =  "python3 src/matrix/matrix_generator.py {} 10000 10000 {} {}".format(
                        size, size, outDir)
                 output = subprocess.getoutput(cmd)
@@ -113,15 +137,25 @@ def main():
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))
         print("--------------------------------------------------------")
+
+        ### Create directory structure in output
+        outDirPrefix = "{}/output/matrix_cache_opt".format(workPath)
+        if(not os.path.isdir(outDirPrefix)):
+            os.mkdir(outDirPrefix)
+
         for size in matrixSizeL:
+            outDir = "{}/{}".format(outDirPrefix,size)
+            if(not os.path.isdir(outDir)):
+                os.mkdir(outDir)
+
             for nThread in ompNumThreadsL:
                 runTimeV = np.zeros([nTrials])
                 #nThread = 10
                 #size=2000
                 for tIdx in range(nTrials):
                     cmd =  ("export OMP_NUM_THREADS={}; ./src/matrix/matrix_multiply_cache_opt "
-                            "data/{}/A.txt data/{}/B.txt  "
-                             "data/{}/output".format(nThread,size,size,size))
+                            "data/matrix/{}/A.txt data/matrix/{}/B.txt  "
+                             "{}".format(nThread,size,size,outDir))
                     output = subprocess.getoutput(cmd)
                     runTime = parse_run_time(output) # Run time
                     runTimeV[tIdx]= runTime
@@ -136,7 +170,17 @@ def main():
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))
         print("--------------------------------------------------------")
+
+        ### Create directory structure in output
+        outDirPrefix = "{}/output/matrix_non_cache_opt".format(workPath)
+        if(not os.path.isdir(outDirPrefix)):
+            os.mkdir(outDirPrefix)
+
         for size in matrixSizeL:
+            outDir = "{}/{}".format(outDirPrefix,size)
+            if(not os.path.isdir(outDir)):
+                os.mkdir(outDir)
+
             for nThread in ompNumThreadsL:
                 runTimeV = np.zeros([nTrials])
                 #nThread = 10
@@ -144,8 +188,8 @@ def main():
                 for tIdx in range(nTrials):
                     cmd =  ("export OMP_NUM_THREADS={}; "
                             "./src/matrix/matrix_multiply_non_cache_opt "
-                            "data/{}/A.txt data/{}/B.txt  "
-                             "data/{}/output".format(nThread,size,size,size))
+                            "data/matrix/{}/A.txt data/matrix/{}/B.txt  "
+                             "{}".format(nThread,size,size,outDir))
                     output = subprocess.getoutput(cmd)
                     runTime = parse_run_time(output) # Run time
                     runTimeV[tIdx]= runTime
@@ -164,10 +208,17 @@ def main():
         nSamp   = 3
         treatSampL = []
         wtSampL = []
-        outDir  = "/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/data/rnaseq/fastq/"
-        gtf="/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/src/simulate_fastq_data/data/chr1_short.gtf"
-        genome ="/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/src/simulate_fastq_data/data/chr1_short.fa" 
+        gtf="{}/chr1_short.gtf".format(refPath)
+        genome ="{}/chr1_short.fa".format(refPath)
         configL=["config/config_wt_chr1.txt", "config/config_treat_chr1.txt"]
+
+        # Create output directory structure
+        outDir  = "{}/data/rnaseq".format(workPath)
+        if(not os.path.isdir(outDir)):
+            os.mkdir(outDir)
+        outDir  = "{}/fastq/".format(outDir)
+        if(not os.path.isdir(outDir)):
+            os.mkdir(outDir)
         #gtf="/reference/homo_sapiens/GRCh38/ensembl/release-83/Annotation/Genes/gtf/Homo_sapiens.GRCh38.83.gtf"
         #genome ="/reference/homo_sapiens/GRCh38/ensembl/release-83/Sequence/WholeGenomeFasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
         #configL=["config/config_wt.txt", "config/config_treat.txt"]
@@ -209,9 +260,9 @@ def main():
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))
         print("--------------------------------------------------------")
-        outDirPref = os.path.abspath("output/rnaseq/tophat") #"/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/output/rnaseq/tophat" ##prefix
-        inDirPref  = os.path.abspath("data/rnaseq/fastq") #"/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/data/rnaseq/fastq/"   ## prefix
-        bowtieIdxPath = "/Users/asnedden/Downloads/software/Bowtie2Index/Homo_sapiens.GRC38"
+        outDirPref = os.path.abspath("{}/output/rnaseq/tophat".format(workPath)) #"/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/output/rnaseq/tophat" ##prefix
+        inDirPref  = os.path.abspath("{}/data/rnaseq/fastq".format(workPath)) #"/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/data/rnaseq/fastq/"   ## prefix
+        bowtieIdxPath = "{}/Bowtie2Index/Homo_sapiens.GRC38".format(refPath)
         ## Loop
         for size in rnaSeqSizeL:
             sampFileL   = glob.glob("{}/{}/*.fq".format(inDirPref,size))
@@ -243,9 +294,9 @@ def main():
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))
         print("--------------------------------------------------------")
-        outDirPref = os.path.abspath("output/rnaseq/hisat") ## prefix
-        inDirPref  = os.path.abspath("data/rnaseq/fastq")   ## prefix
-        bowtieIdxPath = "/Users/asnedden/Downloads/software/HisatIndex/genome"
+        outDirPref = os.path.abspath("{}/output/rnaseq/hisat".format(workPath)) ## prefix
+        inDirPref  = os.path.abspath("{}/data/rnaseq/fastq".format(workPath))   ## prefix
+        hisatIdxPath = "{}/HisatIndex/genome".format(refPath)
         ## Loop
         for size in rnaSeqSizeL:
             sampFileL   = glob.glob("{}/{}/*.fq".format(inDirPref,size))
@@ -263,7 +314,7 @@ def main():
                         os.mkdir(outDir)
                     cmd =  (
                         "time hisat2 -p {} --phred33 -x {} -U {} -S {}/output.sam"
-                       "".format(nThread, bowtieIdxPath, samp, outDir))
+                       "".format(nThread, hisatIdxPath, samp, outDir))
                     output = subprocess.getoutput(cmd)
                     runTime = parse_run_time(output) # Run time
                     runTimeV[tIdx]= runTime
@@ -279,9 +330,9 @@ def main():
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))
         print("--------------------------------------------------------")
-        outDirPref = os.path.abspath("output/rnaseq/cufflinks") ## prefix
-        inDirPref  = os.path.abspath("output/rnaseq/tophat")   ## prefix
-        gtf="/Users/asnedden/Downloads/software/Homo_sapiens.GRCh38.96.gtf"
+        outDirPref = os.path.abspath("{}/output/rnaseq/cufflinks".format(workPath)) ## prefix
+        inDirPref  = os.path.abspath("{}/output/rnaseq/tophat".format(workPath))   ## prefix
+        gtf="{}/Homo_sapiens.GRCh38.96.gtf".format(refPath)
         ## Loop
         for size in rnaSeqSizeL:
             sampFileL   = glob.glob("{}/{}/*/accepted_hits.bam".format(inDirPref,size))
@@ -315,10 +366,10 @@ def main():
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))
         print("--------------------------------------------------------")
-        outDirPref = os.path.abspath("output/rnaseq/cuffmerge") ## prefix
-        inDirPref  = os.path.abspath("output/rnaseq/cufflinks")   ## prefix
-        gtf="/Users/asnedden/Downloads/software/Homo_sapiens.GRCh38.96.gtf"
-        genome="/Users/asnedden/Downloads/software/Homo_sapiens.GRCh38.96.gtf"
+        outDirPref = os.path.abspath("{}/output/rnaseq/cuffmerge".format(workPath)) ## prefix
+        inDirPref  = os.path.abspath("{}/output/rnaseq/cufflinks".format(workPath))   ## prefix
+        gtf="{}/Homo_sapiens.GRCh38.96.gtf".format(refPath)
+        genome="{}/Homo_sapiens.GRCh38.dna.primary_assembly.fa".format(refPath)
         ## Loop
         for size in rnaSeqSizeL:
             sampFileL   = glob.glob("{}/{}/*/transcripts.gtf".format(inDirPref,size))
@@ -337,7 +388,8 @@ def main():
                 runTimeV = np.zeros([1])
                 tIdx = 0
                 cmd =  (
-                    "source ~/.local/virtualenvs/python2.7/bin/activate; time  cuffmerge --num-threads {} -o {} --ref-gtf {} --ref-sequence {} {}"
+                    "source ~/.local/virtualenvs/python2.7/bin/activate; "
+                    "time  cuffmerge --num-threads {} -o {} --ref-gtf {} --ref-sequence {} {}"
                    "".format(nThread, outDir, gtf, genome, assemblyPath))
                 output = subprocess.getoutput(cmd)
                 runTime = parse_run_time(output) # Run time
@@ -347,9 +399,25 @@ def main():
                       np.mean(runTimeV), np.std(runTimeV)))
                 print("--------------------------------------------------------")
 
+#### Save for later ####
+# cuffmerge --num-threads 20 -o cuffmerge_R2 --ref-gtf /reference/mus_musculus    /GRCm38/ensembl/release-86/Annotation/Genes/gtf/Mus_musculus.GRCm38.86.gtf --r    ef-sequence /reference/mus_musculus/GRCm38/ensembl/release-86/Sequence/WholeGe    nomeFasta/Mus_musculus.GRCm38.dna.primary_assembly.fa cuffmerge_R2/assemblies.    txt
+#cuffcompare -o cuffmerge_R1/cuffcompare -r /reference/mus_musculus/GRCm38/ens    embl/release-86/Annotation/Genes/gtf/Mus_musculus.GRCm38.86.gtf -R -s /referen    ce/mus_musculus/GRCm38/ensembl/release-86/Sequence/Chromosomes/ -C -V cuffmerg    e_R1/merged.gtf
+ # cuffquant --num-threads 10  --output-dir cuffquant --library-type fr-firststrand /gpfs0/h    ome/reshpc/aps003/Projects/Buhimschi/Analysis/chen_mouse/cuffmerge/merged.gtf tophat/accept    ed_hits.bam
+#cuffnorm --num-threads 48 --output-dir cuffmerge_firststrand_unpair/cuffnorm --library-t    ype fr-firststrand \
+#      cuffmerge_firststrand_unpair/merged.gtf \
+#      -L KO.hy,KO.RA,WT.hy,WT.RA \
+#      KO.hy1.1/cuffquant_firststrand_unpair/abundances.cxb,KO.hy2.1/cuffquant_firststrand_    unpair/abundances.cxb,KO.hy3.1/cuffquant_firststrand_unpair/abundances.cxb,KO.hy4.1/cuffqua    nt_firststrand_unpair/abundances.cxb \
+#      KO.RA1.1/cuffquant_firststrand_unpair/abundances.cxb,KO.RA2/cuffquant_firststrand_un    pair/abundances.cxb,KO.RA3.1/cuffquant_firststrand_unpair/abundances.cxb,KO.RA4/cuffquant_f    irststrand_unpair/abundances.cxb \
+#      WT.hy1.1/cuffquant_firststrand_unpair/abundances.cxb,WT.hy2.1/cuffquant_firststrand_    unpair/abundances.cxb,WT.hy3.1/cuffquant_firststrand_unpair/abundances.cxb,WT.hy4.1/cuffqua    nt_firststrand_unpair/abundances.cxb \
+#      WT.RA1.1/cuffquant_firststrand_unpair/abundances.cxb,WT.RA2/cuffquant_firststrand_un    pair/abundances.cxb,WT.RA3/cuffquant_firststrand_unpair/abundances.cxb,WT.RA4.1/cuffquant_f    irststrand_unpair/abundances.cxb 
 
-
-
+# cuffdiff --num-threads 48 --output-dir cuffmerge/cuffdiff --library-type fr-firststrand \
+#     cuffmerge/merged.gtf \
+#     -L KO.hy,KO.RA,WT.hy,WT.RA \
+#     KO.hy1.1/cuffquant/abundances.cxb,KO.hy2.1/cuffquant/abundances.cxb,KO.hy3.1/cuffquan    t/abundances.cxb,KO.hy4.1/cuffquant/abundances.cxb \
+#     KO.RA1.1/cuffquant/abundances.cxb,KO.RA2/cuffquant/abundances.cxb,KO.RA3.1/cuffquant/    abundances.cxb,KO.RA4/cuffquant/abundances.cxb \
+#     WT.hy1.1/cuffquant/abundances.cxb,WT.hy2.1/cuffquant/abundances.cxb,WT.hy3.1/cuffquan    t/abundances.cxb,WT.hy4.1/cuffquant/abundances.cxb \
+#     WT.RA1.1/cuffquant/abundances.cxb,WT.RA2/cuffquant/abundances.cxb,WT.RA3/cuffquant/ab    undances.cxb,WT.RA4.1/cuffquant/abundances.cxb \
 
 
 

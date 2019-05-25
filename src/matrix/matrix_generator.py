@@ -100,7 +100,7 @@ def main():
     #        [  5.,   6.,   2., ...,   1.,   7.,   5.]])
     # 
     
-    write_matrix(Matrix=A, FileName="{}A.txt".format(outDir))
+    write_matrix(Matrix=A, FileName="{}/A.txt".format(outDir))
     write_matrix(Matrix=B, FileName="{}/B.txt".format(outDir))
     write_matrix(Matrix=AB, FileName="{}/AB.txt".format(outDir))
     

@@ -1,5 +1,4 @@
 Did:
-   
 
 To Do:
 2. Install modern gcc like 7.0 or 8.0
@@ -30,3 +29,6 @@ To Do:
 20. Create config files for Baker, Singularity and OSX that points to the correct
     dirs to use. This will eliminate the non-portable hassel of changing pathnames
 21. Consider adding nTrials to cuffmerge.
+22. Add ability to select number of threads based on cores per socket and total number of threads in driver.py
+23. Add notes about correct usage of workPath and refPath to README.md
+24. Change matrixSizeL to larger values.

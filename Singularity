@@ -129,6 +129,10 @@ Put Help here
     # Non-Cache optimized 
     gcc -O3 -fopenmp -c src/matrix/matrix_multiply_omp.c -o src/matrix/matrix_multiply_omp.o
     gcc -O3 -fopenmp src/matrix/matrix_multiply_omp.o -o src/matrix/matrix_multiply_non_cache_opt
+    ## Compile stream with different array sizes
+    gcc -fopenmp -O -DSTREAM_ARRAY_SIZE=10000000 src/stream/stream.c -o src/stream/stream.10M
+    gcc -fopenmp -O -DSTREAM_ARRAY_SIZE=100000000 src/stream/stream.c -o src/stream/stream.100M
+    gcc -fopenmp -O -DSTREAM_ARRAY_SIZE=1000000000 src/stream/stream.c -o src/stream/stream.1000M
 
     ###### Install necessary software ######
     mkdir /opt/software
@@ -199,6 +203,12 @@ Put Help here
     
 
     ### Run stream multiple times ###
+    echo "Running STREAM_ARRAY_SIZE = 10M" 
+    bash src/stream/run_stream.sh src/stream/stream.10M
+    echo "Running STREAM_ARRAY_SIZE = 100M" 
+    bash src/stream/run_stream.sh src/stream/stream.100M
+    echo "Running STREAM_ARRAY_SIZE = 1000M" 
+    bash src/stream/run_stream.sh src/stream/stream.1000M
 
     
     echo "I've been run"

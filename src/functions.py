@@ -10,10 +10,12 @@ import sys
 from error import exit_with_error
 
 
-def parse_run_time(String):
+def parse_run_time(String, OutDir):
     """
     ARGS:
         String : A string containing the output of run
+        OutDir : This matters b/c we need to point to a place 
+                 where our Singularity container can actually write
     RETURN:
         Run Time from the output in String
     DESCRIPTION:
@@ -33,7 +35,7 @@ def parse_run_time(String):
     stringL = String.split("\n")
     time = None
     # Report log of run
-    driverLogF = open("driver.log", "a")
+    driverLogF = open("{}/driver.log".format(OutDir), "a")
     driverLogF.write("\n\n\n\n##################################################\n")
     driverLogF.write(String)
     driverLogF.close()

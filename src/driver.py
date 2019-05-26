@@ -124,7 +124,7 @@ def main():
                 cmd =  "python3 src/matrix/matrix_generator.py {} 10000 10000 {} {}".format(
                        size, size, outDir)
                 output = subprocess.getoutput(cmd)
-                runTime = parse_run_time(output) # Run time
+                runTime = parse_run_time(output,workPath) # Run time
                 runTimeV[tIdx]= runTime
             print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
                       np.mean(runTimeV), np.std(runTimeV)))
@@ -157,7 +157,7 @@ def main():
                             "data/matrix/{}/A.txt data/matrix/{}/B.txt  "
                              "{}".format(nThread,size,size,outDir))
                     output = subprocess.getoutput(cmd)
-                    runTime = parse_run_time(output) # Run time
+                    runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
                 print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
                       np.mean(runTimeV), np.std(runTimeV)))
@@ -191,7 +191,7 @@ def main():
                             "data/matrix/{}/A.txt data/matrix/{}/B.txt  "
                              "{}".format(nThread,size,size,outDir))
                     output = subprocess.getoutput(cmd)
-                    runTime = parse_run_time(output) # Run time
+                    runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
                 print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
                       np.mean(runTimeV), np.std(runTimeV)))
@@ -246,7 +246,7 @@ def main():
                        "{} {} {} {} {} single"
                        "".format(nThread, gtf, genome, config, size, outFile))
                     output = subprocess.getoutput(cmd)
-                    runTime = parse_run_time(output) # Run time
+                    runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
                     tIdx = tIdx + 1
             print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
@@ -286,7 +286,7 @@ def main():
                         "{}; time tophat2 -p {} -o {} {} {}"
                        "".format(python2,nThread, outDir, bowtieIdxPath, samp))
                     output = subprocess.getoutput(cmd)
-                    runTime = parse_run_time(output) # Run time
+                    runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
                     tIdx = tIdx + 1
                 print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
@@ -322,7 +322,7 @@ def main():
                         "time hisat2 -p {} --phred33 -x {} -U {} -S {}/output.sam"
                        "".format(nThread, hisatIdxPath, samp, outDir))
                     output = subprocess.getoutput(cmd)
-                    runTime = parse_run_time(output) # Run time
+                    runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
                     tIdx = tIdx + 1
                 print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
@@ -358,7 +358,7 @@ def main():
                         "time cufflinks --num-threads {} -g {} --output-dir {} {}"
                        "".format(nThread, gtf, outDir, samp))
                     output = subprocess.getoutput(cmd)
-                    runTime = parse_run_time(output) # Run time
+                    runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
                     tIdx = tIdx + 1
                 print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
@@ -404,7 +404,7 @@ def main():
                     "time  cuffmerge --num-threads {} -o {} --ref-gtf {} --ref-sequence {} {}"
                    "".format(python2,nThread, outDir, gtf, genome, assemblyPath))
                 output = subprocess.getoutput(cmd)
-                runTime = parse_run_time(output) # Run time
+                runTime = parse_run_time(output,workPath) # Run time
                 runTimeV[tIdx]= runTime
                 tIdx = tIdx + 1
                 print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,

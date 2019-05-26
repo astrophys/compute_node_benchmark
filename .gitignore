@@ -13,5 +13,5 @@ matrix_multiply_non_cache_opt
 tophat_out
 output
 ref
-submit.slrm
+submit*.slrm
 slurm*

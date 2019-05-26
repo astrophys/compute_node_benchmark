@@ -276,9 +276,15 @@ def main():
                     sampDir = samp.split("/")[-1].split(".")[0]
                     ## Set output directory
                     outDir = "{}/{}/{}".format(outDirPref,size,sampDir)
+                    if(os.path.isfile("/Users/asnedden/.local/virtualenvs/python2.7/bin/python")):
+                        # My OSX configuration b/c I use virtualenv
+                        python2="source ~/.local/virtualenvs/python2.7/bin/activate;"
+                    else:
+                        # On CentOS, default python is 2.6.6
+                        python2=";"
                     cmd =  (
-                        "source ~/.local/virtualenvs/python2.7/bin/activate; time tophat2 -p {} -o {} {} {}"
-                       "".format(nThread, outDir, bowtieIdxPath, samp))
+                        "{}; time tophat2 -p {} -o {} {} {}"
+                       "".format(python2,nThread, outDir, bowtieIdxPath, samp))
                     output = subprocess.getoutput(cmd)
                     runTime = parse_run_time(output) # Run time
                     runTimeV[tIdx]= runTime
@@ -387,10 +393,16 @@ def main():
                 ## Consider adding nTrials here.
                 runTimeV = np.zeros([1])
                 tIdx = 0
+                if(os.path.isfile("/Users/asnedden/.local/virtualenvs/python2.7/bin/python")):
+                    # My OSX configuration b/c I use virtualenv
+                    python2="source ~/.local/virtualenvs/python2.7/bin/activate;"
+                else:
+                    # On CentOS, default python is 2.6.6
+                    python2=";"
                 cmd =  (
-                    "source ~/.local/virtualenvs/python2.7/bin/activate; "
+                    "{};"
                     "time  cuffmerge --num-threads {} -o {} --ref-gtf {} --ref-sequence {} {}"
-                   "".format(nThread, outDir, gtf, genome, assemblyPath))
+                   "".format(python2,nThread, outDir, gtf, genome, assemblyPath))
                 output = subprocess.getoutput(cmd)
                 runTime = parse_run_time(output) # Run time
                 runTimeV[tIdx]= runTime

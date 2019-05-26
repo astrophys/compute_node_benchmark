@@ -12,3 +12,6 @@ matrix_multiply_non_cache_opt
 *.fq
 tophat_out
 output
+ref
+submit.slrm
+slurm*

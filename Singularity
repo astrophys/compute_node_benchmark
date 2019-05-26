@@ -30,8 +30,8 @@ Put Help here
 %files
 # Will need to use environmental variables to copy the code to 
 /gpfs0/home/gdhpcgroup/aps003/Code/Singularity/benchmarking /tmp
-/reference/homo_sapiens/GRCh38/ensembl/release-83/Annotation/Genes/gtf/Homo_sapiens.GRCh38.83.gtf /tmp
-/reference/homo_sapiens/GRCh38/ensembl/release-83/Sequence/WholeGenomeFasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa /tmp
+#/reference/homo_sapiens/GRCh38/ensembl/release-83/Annotation/Genes/gtf/Homo_sapiens.GRCh38.83.gtf /tmp
+#/reference/homo_sapiens/GRCh38/ensembl/release-83/Sequence/WholeGenomeFasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa /tmp
 # Copy bowtie2 indices here
 # Copy hisat2 indices here
 
@@ -56,6 +56,15 @@ Put Help here
     yum install -y autoconf.noarch
     yum install -y automake.noarch
     yum install -y time.x86_64
+    yum install -y time.x86_64
+    # Install python 2
+    yum install -y python
+    yum install -y python-devel
+    yum install -y python-setuptools
+    yum install -y python-libs
+    #yum install -y python-numpy
+    yum install -y python-tools
+    
     # Samtools dependencies here
     #yum install -y bzip2
     #yum install -y bzip2-devel
@@ -77,6 +86,7 @@ Put Help here
     ##### Do compilation of files ####
     mkdir /opt/code
     mv /tmp/benchmarking /opt/code/
+    mv /opt/code/benchmarking/ref /opt
 
     ## Cache optimized 
     cd /opt/code/benchmarking
@@ -124,12 +134,11 @@ Put Help here
 
 
     ########### Get genomics data ##########
-    mkdir /opt/ref
-    cd /opt/ref
-    mv /tmp/*.fa  /opt/ref
-    mv /tmp/*.gtf /opt/ref
+    #mkdir /opt/
+    #cd /opt/ref
+    #mv /tmp/*.fa  /opt/ref
     # This is expensive - I should really just copy it
-    /opt/software/bowtie2-2.3.5.1/bowtie2-build Homo_sapiens.GRCh38.dna.primary_assembly.fa Homo_sapiens.GRC38
+    #/opt/software/bowtie2-2.3.5.1/bowtie2-build Homo_sapiens.GRCh38.dna.primary_assembly.fa Homo_sapiens.GRC38
     ### Uncomment if this isn't locally located ###
     #wget ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38.tar.gz
     #wget ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_genbank/Eukaryotes/vertebrates_mammals/Homo_sapiens/GRCh38/seqs_for_alignment_pipelines/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
@@ -153,46 +162,18 @@ Put Help here
 
     # Generate files to run - This won't work here b/c it will try to write files to a directory and recall Singularity images cannot modify themselves in runscript. Recall we can use SINGULARITYENV_PATH
     ## I think python3 src/driver.py all will replace below code - be sure it writes, reads, and cleans up tmp 
-    mkdir /tmp/benchmarking_out
-    echo "Creating 2000 10000 10000 2000 files"
-    mkdir -p data/2000/output
-    python3 src/matrix/matrix_generator.py 2000 10000 10000 2000
-    mv data/AB.txt data/2000
-    mv data/B.txt  data/2000
-    mv data/A.txt  data/2000
-
-    echo "Creating 3000 10000 10000 3000 files"
-    mkdir -p data/3000/output
-    python3 src/matrix/matrix_generator.py 3000 10000 10000 3000
-    mv data/AB.txt data/3000
-    mv data/B.txt  data/3000
-    mv data/A.txt  data/3000
-
-    echo "Creating 4000 10000 10000 4000 files"
-    mkdir -p data/4000/output
-    python3 src/matrix/matrix_generator.py 4000 10000 10000 4000
-    mv data/AB.txt data/4000
-    mv data/B.txt  data/4000
-    mv data/A.txt  data/4000
-
-    echo "Creating 5000 10000 10000 5000 files"
-    mkdir -p data/5000/output
-    python3 src/matrix/matrix_generator.py 5000 10000 10000 5000
-    mv data/AB.txt data/5000
-    mv data/B.txt  data/5000
-    mv data/A.txt  data/5000
-
-    mkdir -p data/rnaseq/fastq
-    mkdir -p output/rnaseq/tophat
-    mkdir -p output/rnaseq/hisat
-    mkdir -p output/rnaseq/cufflinks
-    mkdir -p output/rnaseq/cuffmerge
-    #echo "Creating 10000 10000 10000 10000 files"
-    #mkdir -p data/10000/output
-    #python3 src/matrix/matrix_generator.py 10000 10000 10000 10000
-    #mv data/AB.txt data/10000
-    #mv data/B.txt  data/10000
-    #mv data/A.txt  data/10000
+    mkdir -p /tmp/benchmarking_out
+    mkdir -p /tmp/benchmarking_out/data
+    mkdir -p /tmp/benchmarking_out/output
+    cd /opt/code/benchmarking
+    python3 src/driver.py build_mat_mult_data /tmp/benchmarking_out/ /opt/ref/
+    python3 src/driver.py mat_mult_cache_opt /tmp/benchmarking_out/ /opt/ref/
+    python3 src/driver.py mat_mult_non_cache_opt /tmp/benchmarking_out/ /opt/ref/
+    python3 src/driver.py build_rnaseq_data /tmp/benchmarking_out/ /opt/ref/
+    python3 src/driver.py align_rnaseq_tophat /tmp/benchmarking_out/ /opt/ref/
+    python3 src/driver.py align_rnaseq_hisat /tmp/benchmarking_out/ /opt/ref/
+    python3 src/driver.py cufflinks_assemble /tmp/benchmarking_out/ /opt/ref/
+    python3 src/driver.py cuffmerge /tmp/benchmarking_out/ /opt/ref/
     
 
     ### Run stream multiple times ###

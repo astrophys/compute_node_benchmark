@@ -1,4 +1,8 @@
 Did:
+1. Worked on getting Singularity recipe file to build an image that 
+   correctly runs the driver.py
+2. Put conditionals in driver.py to handle the usage of python2 within
+   the python3 script.
 
 To Do:
 2. Install modern gcc like 7.0 or 8.0

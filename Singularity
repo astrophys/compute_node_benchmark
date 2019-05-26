@@ -88,6 +88,7 @@ Put Help here
     mkdir /opt/code
     mv /tmp/benchmarking /opt/code/
     mv /opt/code/benchmarking/ref /opt
+    mv /opt/code/benchmarking/src/simulate_fastq_data/data/chr1_short* /opt
 
     ## Cache optimized 
     cd /opt/code/benchmarking

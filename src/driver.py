@@ -168,8 +168,8 @@ def main():
                 #size=2000
                 for tIdx in range(nTrials):
                     cmd =  ("export OMP_NUM_THREADS={}; ./src/matrix/matrix_multiply_cache_opt "
-                            "data/matrix/{}/A.txt data/matrix/{}/B.txt  "
-                             "{}".format(nThread,size,size,outDir))
+                            "{}/data/matrix/{}/A.txt data/matrix/{}/B.txt  "
+                             "{}".format(nThread,workPath,size,size,outDir))
                     output = subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
@@ -202,8 +202,8 @@ def main():
                 for tIdx in range(nTrials):
                     cmd =  ("export OMP_NUM_THREADS={}; "
                             "./src/matrix/matrix_multiply_non_cache_opt "
-                            "data/matrix/{}/A.txt data/matrix/{}/B.txt  "
-                             "{}".format(nThread,size,size,outDir))
+                            "{}/data/matrix/{}/A.txt data/matrix/{}/B.txt  "
+                             "{}".format(nThread,workPath,size,size,outDir))
                     output = subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
@@ -274,8 +274,8 @@ def main():
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))
         print("--------------------------------------------------------")
-        outDirPref = os.path.abspath("{}/output/rnaseq/tophat".format(workPath)) #"/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/output/rnaseq/tophat" ##prefix
-        inDirPref  = os.path.abspath("{}/data/rnaseq/fastq".format(workPath)) #"/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/data/rnaseq/fastq/"   ## prefix
+        outDirPref = os.path.abspath("{}/output/rnaseq/tophat".format(workPath)) 
+        inDirPref  = os.path.abspath("{}/data/rnaseq/fastq".format(workPath)) 
         bowtieIdxPath = "{}/Bowtie2Index/Homo_sapiens.GRC38".format(refPath)
         ## Loop
         for size in rnaSeqSizeL:

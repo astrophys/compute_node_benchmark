@@ -14,6 +14,8 @@ import os
 import glob
 import numpy as np
 import subprocess
+import shutil
+import bisect
 from error import exit_with_error
 from functions import parse_run_time
 
@@ -92,6 +94,18 @@ def main():
     #rnaSeqSizeL = [10**4,10**5,10**6]   
     rnaSeqSizeL = [2*10**4,10**5]
     nTrials     = 3                     # number of trials to test,get stdev and mean
+    ## In Linux singularity container add cores per socket and total cores to ompNumThreadsL
+    if(shutil.which('lscpu') != None):
+        cmd="lscpu | grep 'Core(s) per socket:' | awk '{print $4}'"
+        coresPerSocket = int(subprocess.getoutput(cmd))
+        cmd="lscpu  | grep '^CPU(s):' | awk '{print $2}'"
+        totalCores = int(subprocess.getoutput(cmd))
+        bisect.insort_left(ompNumThreadsL, coresPerSocket)
+        bisect.insort_left(ompNumThreadsL, totalCores)
+        ompNumThreadsL=list(sorted(set(ompNumThreadsL)))
+        print("Cores per socket : {}".format(coresPerSocket))
+        print("Total Cores : {}".format(totalCores))
+        print("Cores tested : {}".format(ompNumThreadsL))
 
     if(options != 'all' and options != 'build_mat_mult_data' and 
        options != 'mat_mult_non_cache_opt' and options != 'local_memory_access' and

@@ -7,7 +7,6 @@ To Do:
 5. Check that AB_result.txt from numpy is same as from matrix_multiply
 7. Test lapack
 8. Add License
-11. Build data in /tmp b/c this is a bind point in Singularity
 12. simulate_fastq : 
     a) Randomly sample quality space from probability distribution function
     b) Add switch for single end vs. paired end reads (include --fr, --rf and unstranded). In
@@ -16,9 +15,6 @@ To Do:
        --> See : http://onetipperday.sterding.com/2012/07/how-to-tell-which-library-type-to-use.html
     c) Add CL or config variable for mu and sigma for insert length
 13. Add file access time on /dev/shm
-14. Tried running :
-    tophat2 -p 4 /reference/homo_sapiens/GRCh38/ensembl/release-83/Sequence/Bowtie2Index/Homo_sapiens.GRC38 poop.fq
-    --> Not effective for debugging.
 15. Check that my reads are correctly mapping to the transcripts: 
     Single exons : 
 16. Fix number of reads at CL vs. config.txt
@@ -26,9 +22,8 @@ To Do:
 18. Change nomenclature from forward/reverse sense/antisense strand
 
 19. Figure out how to pass shell variables in singularity during build time
-20. Create config files for Baker, Singularity and OSX that points to the correct
-    dirs to use. This will eliminate the non-portable hassel of changing pathnames
 21. Consider adding nTrials to cuffmerge.
 22. Add ability to select number of threads based on cores per socket and total number of threads in driver.py
 23. Add notes about correct usage of workPath and refPath to README.md
 24. Change matrixSizeL to larger values.
+25. 

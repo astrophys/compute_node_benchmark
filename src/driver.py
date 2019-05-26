@@ -42,6 +42,7 @@ def print_help(Arg):
             "             = 'align_rnaseq_hisat'     : Align samples in data/rnaseq w/ hisat\n"
             "             = 'cufflinks_assemble'     : Must have run tophat. Assembles transcriptome\n"
             "             = 'cuffmerge'              : Must have run tophat and cufflinks\n"
+            "             = 'kelvin'                 : Runs kelvin (a statistical genetics software) \n"
             "             = 'local_memory_access'    : grep's a large file in temp\n"
             "   /abs/path/to/workspace    : Path where all the output/data gets saved.\n"
             "   /abs/path/to/ref          : Path where bowtie/hisat indices and ref fasta/gtf"
@@ -94,6 +95,12 @@ def main():
     #rnaSeqSizeL = [10**4,10**5,10**6]   
     rnaSeqSizeL = [2*10**4,10**5]
     nTrials     = 3                     # number of trials to test,get stdev and mean
+    # Create work path dir if doesn't exist
+    if(not os.path.isdir(workPath)):
+        os.mkdir(workPath)
+
+
+
     ## In Linux singularity container add cores per socket and total cores to ompNumThreadsL
     if(shutil.which('lscpu') != None):
         cmd="lscpu | grep 'Core(s) per socket:' | awk '{print $4}'"
@@ -111,7 +118,8 @@ def main():
        options != 'mat_mult_non_cache_opt' and options != 'local_memory_access' and
        options != 'mat_mult_cache_opt' and options != 'build_rnaseq_data' and
        options != 'align_rnaseq_tophat' and options != 'align_rnaseq_hisat' and
-       options != 'cufflinks_assemble'  and options != 'cuffmerge'
+       options != 'cufflinks_assemble'  and options != 'cuffmerge' and
+       options != 'kelvin'
     ):
         exit_with_error("ERROR!!! {} is invalid option\n")
 
@@ -424,6 +432,45 @@ def main():
                 print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
                       np.mean(runTimeV), np.std(runTimeV)))
                 print("--------------------------------------------------------")
+
+
+    ## This will only run on Linux, not OSX
+    if(options == 'all' or options == 'kelvin'):
+        print("Runnning Kelving...")
+        print("--------------------------------------------------------")
+        print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Short", "OMP_Threads", "mean",
+              "stdev"))
+        print("--------------------------------------------------------")
+
+        # Create output directory structure
+        outDirPref  = "{}/output".format(workPath)
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
+        outDirPref  = "{}/kelvin".format(outDirPref)
+        curDir = os.path.dirname(os.path.realpath(__file__))
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
+
+        ## Loop
+        for nThread in ompNumThreadsL:
+            outDir = "{}/{}".format(outDirPref,nThread)
+            if(not os.path.isdir(outDir)):
+                os.mkdir(outDir)
+
+            runTimeV = np.zeros([nTrials])
+            for tIdx in range(nTrials):   ### change to nTrials
+            ## Consider adding nTrials here.
+                cmd =  (
+                    "export OMP_NUM_THREADS={};"
+                    "export LD_LIBRARY_PATH={}/src/kelvin/:$LD_LIBRARY_PATH;"
+                    "time src/kelvin/kelvin src/kelvin/kelvin.conf --PedigreeFile src/kelvin/single.post > {}/kelvin.out.{}  2>&1"
+                   "".format(nThread, curDir, outDir,tIdx))
+                output = subprocess.getoutput(cmd)
+                runTime = parse_run_time(output,workPath) # Run time
+                runTimeV[tIdx]= runTime
+            print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format("Short", nThread,
+                  np.mean(runTimeV), np.std(runTimeV)))
+            print("--------------------------------------------------------")
 
 #### Save for later ####
 # cuffmerge --num-threads 20 -o cuffmerge_R2 --ref-gtf /reference/mus_musculus    /GRCm38/ensembl/release-86/Annotation/Genes/gtf/Mus_musculus.GRCm38.86.gtf --r    ef-sequence /reference/mus_musculus/GRCm38/ensembl/release-86/Sequence/WholeGe    nomeFasta/Mus_musculus.GRCm38.dna.primary_assembly.fa cuffmerge_R2/assemblies.    txt

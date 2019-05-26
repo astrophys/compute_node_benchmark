@@ -92,7 +92,7 @@ Put Help here
     if [ -d "/opt/code/benchmarking/ref" ]; then 
         mv /opt/code/benchmarking/ref /opt
     # If not, download
-    else:
+    else
         ## Untested
         mkdir /opt/ref
         cd /opt/ref
@@ -132,7 +132,6 @@ Put Help here
     ## Compile stream with different array sizes
     gcc -fopenmp -O -DSTREAM_ARRAY_SIZE=10000000 src/stream/stream.c -o src/stream/stream.10M
     gcc -fopenmp -O -DSTREAM_ARRAY_SIZE=100000000 src/stream/stream.c -o src/stream/stream.100M
-    gcc -fopenmp -O -DSTREAM_ARRAY_SIZE=1000000000 src/stream/stream.c -o src/stream/stream.1000M
 
     ###### Install necessary software ######
     mkdir /opt/software
@@ -200,6 +199,11 @@ Put Help here
     python3 src/driver.py align_rnaseq_hisat /tmp/benchmarking_out/ /opt/ref/
     python3 src/driver.py cufflinks_assemble /tmp/benchmarking_out/ /opt/ref/
     python3 src/driver.py cuffmerge /tmp/benchmarking_out/ /opt/ref/
+
+    ## This source code is unavailable, 
+    #if [ -d src/kelvin ]; then 
+    #    python3 src/driver.py kelvin /tmp/benchmarking_out/ /opt/ref/
+    #fi
     
 
     ### Run stream multiple times ###
@@ -207,8 +211,6 @@ Put Help here
     bash src/stream/run_stream.sh src/stream/stream.10M
     echo "Running STREAM_ARRAY_SIZE = 100M" 
     bash src/stream/run_stream.sh src/stream/stream.100M
-    echo "Running STREAM_ARRAY_SIZE = 1000M" 
-    bash src/stream/run_stream.sh src/stream/stream.1000M
 
     
     echo "I've been run"

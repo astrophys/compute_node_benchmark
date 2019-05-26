@@ -26,4 +26,4 @@ To Do:
 22. Add ability to select number of threads based on cores per socket and total number of threads in driver.py
 23. Add notes about correct usage of workPath and refPath to README.md
 24. Change matrixSizeL to larger values.
-25. 
+25. Make note about stream license

@@ -168,8 +168,8 @@ def main():
                 #size=2000
                 for tIdx in range(nTrials):
                     cmd =  ("export OMP_NUM_THREADS={}; ./src/matrix/matrix_multiply_cache_opt "
-                            "{}/data/matrix/{}/A.txt data/matrix/{}/B.txt  "
-                             "{}".format(nThread,workPath,size,size,outDir))
+                            "{}/data/matrix/{}/A.txt {}/data/matrix/{}/B.txt  "
+                             "{}".format(nThread,workPath,size,workPath,size,outDir))
                     output = subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
@@ -202,8 +202,8 @@ def main():
                 for tIdx in range(nTrials):
                     cmd =  ("export OMP_NUM_THREADS={}; "
                             "./src/matrix/matrix_multiply_non_cache_opt "
-                            "{}/data/matrix/{}/A.txt data/matrix/{}/B.txt  "
-                             "{}".format(nThread,workPath,size,size,outDir))
+                            "{}/data/matrix/{}/A.txt {}/data/matrix/{}/B.txt  "
+                             "{}".format(nThread,workPath,size,workPath,size,outDir))
                     output = subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime

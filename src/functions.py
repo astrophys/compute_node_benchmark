@@ -42,7 +42,9 @@ def parse_run_time(String, OutDir):
 
     # Parse
     for string in stringL:
-        if("ERROR" in string or "command not found" in string):
+        if("ERROR" in string or "command not found" in string or 
+           "Errno" in string
+        ):
             exit_with_error("{}\n".format(string))
         elif("Run time :" in string):
             time = float(string.split(" ")[3])

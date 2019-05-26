@@ -87,9 +87,41 @@ Put Help here
     ##### Do compilation of files ####
     mkdir /opt/code
     mv /tmp/benchmarking /opt/code/
-    mv /opt/code/benchmarking/ref /opt
-    mv /opt/code/benchmarking/src/simulate_fastq_data/data/chr1_short* /opt
 
+    # If reference directory exists, use it
+    if [ -d "/opt/code/benchmarking/ref" ]; then 
+        mv /opt/code/benchmarking/ref /opt
+    # If not, download
+    else:
+        ## Untested
+        mkdir /opt/ref
+        cd /opt/ref
+        # Hisat indices
+        wget ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38.tar.gz
+        tar xvzf grch38.tar.gz
+        mv grch38 HisatIndex
+        rm grch38.tar.gz
+        # Bowtie indices
+        wget ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_genbank/Eukaryotes/vertebrates_mammals/Homo_sapiens/GRCh38/seqs_for_alignment_pipelines/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
+        tar xvzf GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
+        mkdir Bowtie2Index
+        mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.1.bt2  Bowtie2Index/Homo_sapiens.GRC38.1.bt2
+        mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.2.bt2  Bowtie2Index/Homo_sapiens.GRC38.2.bt2
+        mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.3.bt2  Bowtie2Index/Homo_sapiens.GRC38.3.bt2
+        mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.4.bt2  Bowtie2Index/Homo_sapiens.GRC38.4.bt2
+        mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.rev.1.bt2  Bowtie2Index/Homo_sapiens.GRC38.rev.1.bt2
+        mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.rev.2.bt2  Bowtie2Index/Homo_sapiens.GRC38.rev.2.bt2
+        rm GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
+        # Gtf
+        wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-96/gtf/homo_sapiens/Homo_sapiens.GRCh38.96.gtf.gz
+        gunzip Homo_sapiens.GRCh38.96.gtf.gz
+        # Fasta
+        wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-96/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+        gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+    fi
+    mv /opt/code/benchmarking/src/simulate_fastq_data/data/chr1_short* /opt/ref
+
+    ##### Do compilation of files ####
     ## Cache optimized 
     cd /opt/code/benchmarking
     gcc -O3 -fopenmp -c src/matrix/matrix_multiply_omp_cache_optimized.c -o src/matrix/matrix_multiply_omp_cache_optimized.o
@@ -136,18 +168,6 @@ Put Help here
 
 
     ########### Get genomics data ##########
-    #mkdir /opt/
-    #cd /opt/ref
-    #mv /tmp/*.fa  /opt/ref
-    # This is expensive - I should really just copy it
-    #/opt/software/bowtie2-2.3.5.1/bowtie2-build Homo_sapiens.GRCh38.dna.primary_assembly.fa Homo_sapiens.GRC38
-    ### Uncomment if this isn't locally located ###
-    #wget ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38.tar.gz
-    #wget ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_genbank/Eukaryotes/vertebrates_mammals/Homo_sapiens/GRCh38/seqs_for_alignment_pipelines/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
-    #wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-96/gtf/homo_sapiens/Homo_sapiens.GRCh38.96.gtf.gz
-    #gunzip Homo_sapiens.GRCh38.96.gtf.gz
-    #wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-96/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
-    #gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
 
     echo "Hello from inside the container"
 

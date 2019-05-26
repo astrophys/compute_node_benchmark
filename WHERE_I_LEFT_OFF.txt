@@ -28,3 +28,4 @@ To Do:
 24. Change matrixSizeL to larger values.
 25. Make note about stream license
 26. Test singularity build when ref is unavailable.
+27. Fix kelvin option so it can be run from the toplevel directory.

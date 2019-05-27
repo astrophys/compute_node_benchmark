@@ -69,13 +69,13 @@ Put Help here
     yum install -y python-tools
     
     # Samtools dependencies here
-    #yum install -y bzip2
-    #yum install -y bzip2-devel
-    #yum install -y zlib.x86_64
-    #yum install -y zlib-devel.x86_64
-    #yum install -y gawk.x86_64
-    #yum install -y liblzma5.x86_64
-    #yum install -y xz-devel.x86_64
+    yum install -y bzip2
+    yum install -y bzip2-devel
+    yum install -y zlib.x86_64
+    yum install -y zlib-devel.x86_64
+    yum install -y gawk.x86_64
+    yum install -y liblzma5.x86_64
+    yum install -y xz-devel.x86_64
     
 
     mkdir -p /opt/python3.4/lib/python3.4/site-packages

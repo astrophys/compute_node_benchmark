@@ -41,6 +41,18 @@ Below are references for the code that we are testing. Most of this code (other 
 4. [Cufflinks](http://cole-trapnell-lab.github.io/cufflinks/cuffcompare/index.html)
 5. [Kelvin](https://www.karger.com/Article/Abstract/330634)
 
+
+## Description of what this code does
+1. Creates some matrix data (see `matrix_generator.py`)
+2. Runs matrix multiplication tests with cache optimized code (see `matrix_multiply_omp_cache_optimized.c`). Tries various number of threads.
+3. Runs matrix multiplication tests with non-cache optimized code (see `matrix_multiply_omp.c`)
+4. Creates synthetic fastq data set (see `simulate_fastq.py`). Tries various number of threads.
+5. Runs alignment to human genome using `tophat2`.
+6. Runs alignment to human genome using `hisat2`.
+7. Runs assembly on samples using `cufflinks`
+8. Merges assembled data using `cuffmerge`
+
+
 ## Installation
 ### Dependencies
 1. Singularity (tested with Singularity 2.5.1)

@@ -74,7 +74,7 @@ Put Help here
     yum install -y zlib.x86_64
     yum install -y zlib-devel.x86_64
     yum install -y gawk.x86_64
-    yum install -y liblzma5.x86_64
+    yum install -y lzip.x86_64
     yum install -y xz-devel.x86_64
     
 
@@ -178,7 +178,7 @@ Put Help here
     # Create fai for cufflinks workflow
     export PATH=/opt/software/samtools-1.9/bin:$PATH
     cd /opt/ref
-    if [ -f "Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai" ]; then 
+    if [ ! -f "Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai" ]; then 
         samtools faidx Homo_sapiens.GRCh38.dna.primary_assembly.fa
     fi
 

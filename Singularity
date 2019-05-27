@@ -29,11 +29,13 @@ Put Help here
 ## Copy Files from outside of image to a place visible to image. Is Run before %post
 %files
 # Will need to use environmental variables to copy the code to 
-/gpfs0/home/gdhpcgroup/aps003/Code/Singularity/benchmarking /tmp
-#/reference/homo_sapiens/GRCh38/ensembl/release-83/Annotation/Genes/gtf/Homo_sapiens.GRCh38.83.gtf /tmp
-#/reference/homo_sapiens/GRCh38/ensembl/release-83/Sequence/WholeGenomeFasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa /tmp
-# Copy bowtie2 indices here
-# Copy hisat2 indices here
+#/gpfs0/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/ /tmp  # Copies *.simg, maybe comment below later and uncomment this line?
+/gpfs0/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/src /tmp
+/gpfs0/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/WHERE_I_LEFT_OFF.txt /tmp
+/gpfs0/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/config /tmp
+/gpfs0/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/README.md /tmp
+/gpfs0/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/Singularity tmp
+/gpfs0/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/ref tmp
 
 #%labels
 #    Author: Ali Snedden
@@ -85,8 +87,13 @@ Put Help here
     pip install --prefix /opt/python3.4 argparse
     #
     ##### Do compilation of files ####
-    mkdir /opt/code
-    mv /tmp/benchmarking /opt/code/
+    mkdir -p /opt/code/benchmarking
+    mv /tmp/src /opt/code/benchmarking
+    mv /tmp/WHERE_I_LEFT_OFF.txt /opt/code/benchmarking
+    mv /tmp/config /opt/code/benchmarking
+    mv /tmp/README.md /opt/code/benchmarking
+    mv /tmp/Singularity /opt/code/benchmarking
+    mv /tmp/ref /opt/code/benchmarking
 
     # If reference directory exists, use it
     if [ -d "/opt/code/benchmarking/ref" ]; then 
@@ -113,10 +120,10 @@ Put Help here
         mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.rev.2.bt2  Bowtie2Index/Homo_sapiens.GRC38.rev.2.bt2
         rm GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
         # Gtf
-        wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-96/gtf/homo_sapiens/Homo_sapiens.GRCh38.96.gtf.gz
-        gunzip Homo_sapiens.GRCh38.96.gtf.gz
+        wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-83/gtf/homo_sapiens/Homo_sapiens.GRCh38.83.gtf.gz
+        gunzip Homo_sapiens.GRCh38.83.gtf.gz
         # Fasta
-        wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-96/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+        wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-83/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
         gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
     fi
     mv /opt/code/benchmarking/src/simulate_fastq_data/data/chr1_short* /opt/ref
@@ -160,14 +167,20 @@ Put Help here
     mv cufflinks-2.2.1.Linux_x86_64 cufflinks-2.2.1
     
     # Samtools
-    #wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2
-    #tar xvjf samtools-1.9.tar.bz2
-    #rm samtools-1.9.tar.bz2
-    #cd samtools-1.9
-    #./configure --without-curses
-    #make
-    #mkdir bin
-    #mv samtools bin/
+    wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2
+    tar xvjf samtools-1.9.tar.bz2
+    rm samtools-1.9.tar.bz2
+    cd samtools-1.9
+    ./configure --without-curses
+    make
+    mkdir bin
+    cp samtools bin/
+    # Create fai for cufflinks workflow
+    export PATH=/opt/software/samtools-1.9/bin:$PATH
+    cd /opt/ref
+    if [ -f "Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai" ]; then 
+        samtools faidx Homo_sapiens.GRCh38.dna.primary_assembly.fa
+    fi
 
 
     ########### Get genomics data ##########
@@ -176,6 +189,7 @@ Put Help here
 
 
 %runscript
+    set -e
     ######## Matrix Multiply ########
     # Set Environmental Variables
     export PYTHONPATH=/opt/python3.4/lib/python3.4/site-packages:$PYTHONPATH
@@ -187,6 +201,9 @@ Put Help here
 
     # Generate files to run - This won't work here b/c it will try to write files to a directory and recall Singularity images cannot modify themselves in runscript. Recall we can use SINGULARITYENV_PATH
     ## I think python3 src/driver.py all will replace below code - be sure it writes, reads, and cleans up tmp 
+    if [ -d "/tmp/benchmarking_out" ]; then 
+        rm -r /tmp/benchmarking_out
+    fi
     mkdir -p /tmp/benchmarking_out
     mkdir -p /tmp/benchmarking_out/data
     mkdir -p /tmp/benchmarking_out/output
@@ -195,7 +212,7 @@ Put Help here
     #python3 src/driver.py build_mat_mult_data /tmp/benchmarking_out/ /opt/ref/
     #python3 src/driver.py mat_mult_cache_opt /tmp/benchmarking_out/ /opt/ref/
     #python3 src/driver.py mat_mult_non_cache_opt /tmp/benchmarking_out/ /opt/ref/
-    #python3 src/driver.py build_rnaseq_data /tmp/benchmarking_out/ /opt/ref/
+    python3 src/driver.py build_rnaseq_data /tmp/benchmarking_out/ /opt/ref/
     python3 src/driver.py align_rnaseq_tophat /tmp/benchmarking_out/ /opt/ref/
     python3 src/driver.py align_rnaseq_hisat /tmp/benchmarking_out/ /opt/ref/
     python3 src/driver.py cufflinks_assemble /tmp/benchmarking_out/ /opt/ref/

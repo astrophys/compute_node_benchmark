@@ -55,7 +55,7 @@ def print_help(Arg):
             "          a) Bowtie2 indices: /refPath/Bowtie2Index/Homo_sapiens.GRC38 \n"
             "          b) Hisat2 indices : /refPath/HisatIndex/genome \n"
             "          c) Genome Fasta   : /refPath/Homo_sapiens.GRCh38.dna.primary_assembly.fa:\n"
-            "          d) GTF file       : /refPath/Homo_sapiens.GRCh38.96.gtf\n"
+            "          d) GTF file       : /refPath/Homo_sapiens.GRCh38.83.gtf\n"
             "          e) Short Chr1 Gtf : /refPath/chr1_short.gtf\n"
             "          f) Short Chr1 fasta : /refPath/chr1_short.fa\n"
             )
@@ -290,6 +290,8 @@ def main():
             os.mkdir(outDirPref)
 
         inDirPref  = os.path.abspath("{}/data/rnaseq/fastq".format(workPath)) 
+        if(not os.path.isdir(inDirPref)):
+            exit_with_error("ERROR!!! fastq data does not exits. Run build_rnaseq_data option")
         bowtieIdxPath = "{}/Bowtie2Index/Homo_sapiens.GRC38".format(refPath)
         ## Loop
         for size in rnaSeqSizeL:
@@ -336,6 +338,8 @@ def main():
         if(not os.path.isdir(outDirPref)):
             os.mkdir(outDirPref)
         inDirPref  = os.path.abspath("{}/data/rnaseq/fastq".format(workPath))   ## prefix
+        if(not os.path.isdir(inDirPref)):
+            exit_with_error("ERROR!!! fastq data does not exits. Run build_rnaseq_data option")
         hisatIdxPath = "{}/HisatIndex/genome".format(refPath)
         ## Loop
         for size in rnaSeqSizeL:
@@ -377,7 +381,7 @@ def main():
         if(not os.path.isdir(outDirPref)):
             os.mkdir(outDirPref)
         inDirPref  = os.path.abspath("{}/output/rnaseq/tophat".format(workPath))   ## prefix
-        gtf="{}/Homo_sapiens.GRCh38.96.gtf".format(refPath)
+        gtf="{}/Homo_sapiens.GRCh38.83.gtf".format(refPath)
         ## Loop
         for size in rnaSeqSizeL:
             sampFileL   = glob.glob("{}/{}/*/accepted_hits.bam".format(inDirPref,size))
@@ -418,7 +422,7 @@ def main():
         if(not os.path.isdir(outDirPref)):
             os.mkdir(outDirPref)
         inDirPref  = os.path.abspath("{}/output/rnaseq/cufflinks".format(workPath))   ## prefix
-        gtf="{}/Homo_sapiens.GRCh38.96.gtf".format(refPath)
+        gtf="{}/Homo_sapiens.GRCh38.83.gtf".format(refPath)
         genome="{}/Homo_sapiens.GRCh38.dna.primary_assembly.fa".format(refPath)
         ## Loop
         for size in rnaSeqSizeL:
@@ -442,7 +446,7 @@ def main():
                     python2="source ~/.local/virtualenvs/python2.7/bin/activate;"
                 else:
                     # On CentOS, default python is 2.6.6
-                    python2=";"
+                    python2="/usr/bin/python"
                 cmd =  (
                     "{};"
                     "time  cuffmerge --num-threads {} -o {} --ref-gtf {} --ref-sequence {} {}"
@@ -513,13 +517,8 @@ def main():
 #     KO.RA1.1/cuffquant/abundances.cxb,KO.RA2/cuffquant/abundances.cxb,KO.RA3.1/cuffquant/    abundances.cxb,KO.RA4/cuffquant/abundances.cxb \
 #     WT.hy1.1/cuffquant/abundances.cxb,WT.hy2.1/cuffquant/abundances.cxb,WT.hy3.1/cuffquan    t/abundances.cxb,WT.hy4.1/cuffquant/abundances.cxb \
 #     WT.RA1.1/cuffquant/abundances.cxb,WT.RA2/cuffquant/abundances.cxb,WT.RA3/cuffquant/ab    undances.cxb,WT.RA4.1/cuffquant/abundances.cxb \
-
-
-
-
-
-
-    print("Run Time : {:.4f} h".format((time.time() - startTime)/3600.0))
+    print("Run Time for {} option : {:.4f} h\n\n".format(options,(time.time() - startTime)/3600.0))
+    sys.exit(0)
 
 
 if __name__ == "__main__":

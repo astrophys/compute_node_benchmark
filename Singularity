@@ -191,10 +191,11 @@ Put Help here
     mkdir -p /tmp/benchmarking_out/data
     mkdir -p /tmp/benchmarking_out/output
     cd /opt/code/benchmarking
-    python3 src/driver.py build_mat_mult_data /tmp/benchmarking_out/ /opt/ref/
-    python3 src/driver.py mat_mult_cache_opt /tmp/benchmarking_out/ /opt/ref/
-    python3 src/driver.py mat_mult_non_cache_opt /tmp/benchmarking_out/ /opt/ref/
-    python3 src/driver.py build_rnaseq_data /tmp/benchmarking_out/ /opt/ref/
+    ## Temporarly comment out
+    #python3 src/driver.py build_mat_mult_data /tmp/benchmarking_out/ /opt/ref/
+    #python3 src/driver.py mat_mult_cache_opt /tmp/benchmarking_out/ /opt/ref/
+    #python3 src/driver.py mat_mult_non_cache_opt /tmp/benchmarking_out/ /opt/ref/
+    #python3 src/driver.py build_rnaseq_data /tmp/benchmarking_out/ /opt/ref/
     python3 src/driver.py align_rnaseq_tophat /tmp/benchmarking_out/ /opt/ref/
     python3 src/driver.py align_rnaseq_hisat /tmp/benchmarking_out/ /opt/ref/
     python3 src/driver.py cufflinks_assemble /tmp/benchmarking_out/ /opt/ref/

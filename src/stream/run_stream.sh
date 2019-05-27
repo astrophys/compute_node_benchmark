@@ -6,7 +6,6 @@
 #         egrep 'physical id.*: 0'| \
 #         perl -ane 'print ("$F[2]\n");'`
 set -e
-set -u
 COREIDS=`grep -P 'processor[\t ]' /proc/cpuinfo | cut -d: -f2 | tr -d ' '`
 COUNT=1
 STREAM=$1

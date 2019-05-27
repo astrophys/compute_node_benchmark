@@ -282,7 +282,13 @@ def main():
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))
         print("--------------------------------------------------------")
+        outDirPref = "{}/output/rnaseq".format(workPath)
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
         outDirPref = os.path.abspath("{}/output/rnaseq/tophat".format(workPath)) 
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
+
         inDirPref  = os.path.abspath("{}/data/rnaseq/fastq".format(workPath)) 
         bowtieIdxPath = "{}/Bowtie2Index/Homo_sapiens.GRC38".format(refPath)
         ## Loop
@@ -303,7 +309,7 @@ def main():
                         python2="source ~/.local/virtualenvs/python2.7/bin/activate;"
                     else:
                         # On CentOS, default python is 2.6.6
-                        python2=";"
+                        python2="/usr/bin/python"
                     cmd =  (
                         "{}; time tophat2 -p {} -o {} {} {}"
                        "".format(python2,nThread, outDir, bowtieIdxPath, samp))
@@ -322,7 +328,13 @@ def main():
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))
         print("--------------------------------------------------------")
+        # Get directory structure
+        outDirPref = "{}/output/rnaseq".format(workPath)
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
         outDirPref = os.path.abspath("{}/output/rnaseq/hisat".format(workPath)) ## prefix
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
         inDirPref  = os.path.abspath("{}/data/rnaseq/fastq".format(workPath))   ## prefix
         hisatIdxPath = "{}/HisatIndex/genome".format(refPath)
         ## Loop
@@ -358,7 +370,12 @@ def main():
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))
         print("--------------------------------------------------------")
+        outDirPref = os.path.abspath("{}/output/rnaseq/".format(workPath)) ## prefix
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
         outDirPref = os.path.abspath("{}/output/rnaseq/cufflinks".format(workPath)) ## prefix
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
         inDirPref  = os.path.abspath("{}/output/rnaseq/tophat".format(workPath))   ## prefix
         gtf="{}/Homo_sapiens.GRCh38.96.gtf".format(refPath)
         ## Loop
@@ -394,7 +411,12 @@ def main():
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))
         print("--------------------------------------------------------")
+        outDirPref = os.path.abspath("{}/output/rnaseq/".format(workPath)) ## prefix
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
         outDirPref = os.path.abspath("{}/output/rnaseq/cuffmerge".format(workPath)) ## prefix
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
         inDirPref  = os.path.abspath("{}/output/rnaseq/cufflinks".format(workPath))   ## prefix
         gtf="{}/Homo_sapiens.GRCh38.96.gtf".format(refPath)
         genome="{}/Homo_sapiens.GRCh38.dna.primary_assembly.fa".format(refPath)

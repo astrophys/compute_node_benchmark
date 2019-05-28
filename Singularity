@@ -217,6 +217,10 @@ Put Help here
     python3 src/driver.py align_rnaseq_hisat /tmp/benchmarking_out/ /opt/ref/
     python3 src/driver.py cufflinks_assemble /tmp/benchmarking_out/ /opt/ref/
     python3 src/driver.py cuffmerge /tmp/benchmarking_out/ /opt/ref/
+    python3 src/driver.py cuffcompare /tmp/benchmarking_out/ /opt/ref/
+    python3 src/driver.py cuffquant /tmp/benchmarking_out/ /opt/ref/
+    python3 src/driver.py cuffnorm /tmp/benchmarking_out/ /opt/ref/
+    python3 src/driver.py cuffdiff /tmp/benchmarking_out/ /opt/ref/
 
     ## This source code is unavailable, 
     #if [ -d src/kelvin ]; then 

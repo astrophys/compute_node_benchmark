@@ -151,7 +151,8 @@ def main():
             for tIdx in range(nTrials):   ### change to nTrials
                 cmd =  "python3 src/matrix/matrix_generator.py {} 10000 10000 {} {}".format(
                        size, size, outDir)
-                output = subprocess.getoutput(cmd)
+                output = "{}\n".format(cmd)
+                output = output + subprocess.getoutput(cmd)
                 runTime = parse_run_time(output,workPath) # Run time
                 runTimeV[tIdx]= runTime
             print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
@@ -184,7 +185,8 @@ def main():
                     cmd =  ("export OMP_NUM_THREADS={}; ./src/matrix/matrix_multiply_cache_opt "
                             "{}/data/matrix/{}/A.txt {}/data/matrix/{}/B.txt  "
                              "{}".format(nThread,workPath,size,workPath,size,outDir))
-                    output = subprocess.getoutput(cmd)
+                    output = "{}\n".format(cmd)
+                    output = output + subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
                 print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
@@ -218,7 +220,8 @@ def main():
                             "./src/matrix/matrix_multiply_non_cache_opt "
                             "{}/data/matrix/{}/A.txt {}/data/matrix/{}/B.txt  "
                              "{}".format(nThread,workPath,size,workPath,size,outDir))
-                    output = subprocess.getoutput(cmd)
+                    output = "{}\n".format(cmd)
+                    output = output + subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
                 print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
@@ -273,7 +276,8 @@ def main():
                        "python3 src/simulate_fastq_data/simulate_fastq.py "
                        "{} {} {} {} {} single"
                        "".format(nThread, gtf, genome, config, size, outFile))
-                    output = subprocess.getoutput(cmd)
+                    output = "{}\n".format(cmd)
+                    output = output + subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
                     tIdx = tIdx + 1
@@ -326,7 +330,9 @@ def main():
                             "time tophat2 -p {} -o {} {} {}"
                             "".format(nThread, outDir,
                             bowtieIdxPath, samp))
-                    output = subprocess.getoutput(cmd)
+                    
+                    output = "{}\n".format(cmd)
+                    output = output + subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
                     tIdx = tIdx + 1
@@ -370,7 +376,8 @@ def main():
                     cmd =  (
                         "time hisat2 -p {} --phred33 -x {} -U {} -S {}/output.sam"
                        "".format(nThread, hisatIdxPath, samp, outDir))
-                    output = subprocess.getoutput(cmd)
+                    output = "{}\n".format(cmd)
+                    output = output + subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
                     tIdx = tIdx + 1
@@ -411,7 +418,8 @@ def main():
                     cmd =  (
                         "time cufflinks --num-threads {} -g {} --output-dir {} {}"
                        "".format(nThread, gtf, outDir, samp))
-                    output = subprocess.getoutput(cmd)
+                    output = "{}\n".format(cmd)
+                    output = output + subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
                     tIdx = tIdx + 1
@@ -468,7 +476,8 @@ def main():
                         "time  cuffmerge --num-threads {} -o {} "
                         "--ref-gtf {} --ref-sequence {} {}"
                         "".format(nThread, outDir, gtf, genome, assemblyPath))
-                output = subprocess.getoutput(cmd)
+                output = "{}\n".format(cmd)
+                output = output + subprocess.getoutput(cmd)
                 runTime = parse_run_time(output,workPath) # Run time
                 runTimeV[tIdx]= runTime
                 tIdx = tIdx + 1
@@ -506,7 +515,8 @@ def main():
             cmd =  (
                     "time cuffcompare -o {} -r {} -R -C -V {}"
                     "".format(outPref, gtf, " ".join(sampFileL)))
-            output = subprocess.getoutput(cmd)
+            output = "{}\n".format(cmd)
+            output = output + subprocess.getoutput(cmd)
             runTime = parse_run_time(output,workPath) # Run time
             runTimeV[tIdx]= runTime
             tIdx = tIdx + 1
@@ -549,7 +559,8 @@ def main():
                         "time cuffquant --num-threads {} --output-dir {} "
                         "{} {}"
                             "".format(nThread, outDirSamp, gtf, bamFile))
-                    output = subprocess.getoutput(cmd)
+                    output = "{}\n".format(cmd)
+                    output = output + subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
                     tIdx = tIdx + 1
@@ -606,65 +617,8 @@ def main():
                       "".format(nThread, outDir, "treat,wt",  gtf, 
                                 ",".join(treatCxbL), ",".join(wtCxbL)))
                 #print(cmd)
-                output = subprocess.getoutput(cmd)
-                runTime = parse_run_time(output,workPath) # Run time
-                runTimeV[tIdx]= runTime
-                tIdx = tIdx + 1
-                print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
-                      np.mean(runTimeV), np.std(runTimeV)))
-                print("--------------------------------------------------------")
-
-
-
-    if(options == 'all' or options == 'cuffnorm'):
-        print("Quantifying gene expression using cuffquant")
-        print("--------------------------------------------------------")
-        print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
-              "stdev"))
-        print("--------------------------------------------------------")
-        outDirPref = os.path.abspath("{}/output/rnaseq/".format(workPath)) ## prefix
-        if(not os.path.isdir(outDirPref)):
-            os.mkdir(outDirPref)
-        outDirPref = os.path.abspath("{}/output/rnaseq/cuffnorm".format(workPath)) ## prefix
-        if(not os.path.isdir(outDirPref)):
-            os.mkdir(outDirPref)
-        inGtfDirPref  = os.path.abspath("{}/output/rnaseq/cuffmerge".format(workPath))   ## prefix
-        inCxbDirPref  = os.path.abspath("{}/output/rnaseq/cuffquant".format(workPath))   ## prefix
-        ## Loop
-        for size in rnaSeqSizeL:
-            cxbFileL  = glob.glob("{}/{}/*/abundances.cxb".format(inCxbDirPref,size))
-            cxbFileL  = sorted(cxbFileL)    ## Break up into replicates
-            # Get treat and wt groups
-            sampNameL = [name.split('/')[-2] for name in cxbFileL]
-            treatIdxL = ['treat_' in name for name in sampNameL]
-            wtIdxL    = ['wt_' in name for name in sampNameL]
-            treatCxbL = []
-            wtCxbL    = []
-            for idx in range(len(treatIdxL)):
-                if(treatIdxL[idx] == True):
-                    treatCxbL.append(cxbFileL[idx])
-                elif(wtIdxL[idx] == True):
-                    wtCxbL.append(cxbFileL[idx])
-                else:
-                    exit_with_error("ERROR!!! neither treatIdxL[idx] {} nor wtIdxL[idx] "
-                                    "{} are" "True".format(treatIdxL[idx], wtIdxL[idx]))
-            
-            outDir = "{}/{}".format(outDirPref,size)
-            gtf="{}/{}/transcripts.gtf".format(inGtfDirPref,size)
-            if(not os.path.isdir(outDir)):
-                os.mkdir(outDir)
-
-            for nThread in ompNumThreadsL:
-                ## Consider adding nTrials here.
-                runTimeV = np.zeros([1])
-                tIdx = 0
-                cmd =  (
-                    "time cuffnorm --num-threads {} --output-dir {} -L {} "
-                      " {} {} {}"
-                      "".format(nThread, outDir, "treat,wt",  gtf, 
-                                ",".join(treatCxbL), ",".join(wtCxbL)))
-                #print(cmd)
-                output = subprocess.getoutput(cmd)
+                output = "{}\n".format(cmd)
+                output = output + subprocess.getoutput(cmd)
                 runTime = parse_run_time(output,workPath) # Run time
                 runTimeV[tIdx]= runTime
                 tIdx = tIdx + 1
@@ -722,7 +676,8 @@ def main():
                       "".format(nThread, outDir, "treat,wt",  gtf, 
                                 ",".join(treatCxbL), ",".join(wtCxbL)))
                 #print(cmd)
-                output = subprocess.getoutput(cmd)
+                output = "{}\n".format(cmd)
+                output = output + subprocess.getoutput(cmd)
                 runTime = parse_run_time(output,workPath) # Run time
                 runTimeV[tIdx]= runTime
                 tIdx = tIdx + 1
@@ -765,29 +720,16 @@ def main():
                     "export LD_LIBRARY_PATH={}/src/kelvin/:$LD_LIBRARY_PATH;"
                     "time src/kelvin/kelvin src/kelvin/kelvin.conf --PedigreeFile src/kelvin/single.post > {}/kelvin.out.{}  2>&1"
                    "".format(nThread, curDir, outDir,tIdx))
-                output = subprocess.getoutput(cmd)
+                output = "{}\n".format(cmd)
+                output = output + subprocess.getoutput(cmd)
                 runTime = parse_run_time(output,workPath) # Run time
                 runTimeV[tIdx]= runTime
             print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format("Short", nThread,
                   np.mean(runTimeV), np.std(runTimeV)))
             print("--------------------------------------------------------")
 
-#### Save for later ####
-#cuffnorm --num-threads 48 --output-dir cuffmerge_firststrand_unpair/cuffnorm --library-t    ype fr-firststrand \
-#      cuffmerge_firststrand_unpair/merged.gtf \
-#      -L KO.hy,KO.RA,WT.hy,WT.RA \
-#      KO.hy1.1/cuffquant_firststrand_unpair/abundances.cxb,KO.hy2.1/cuffquant_firststrand_    unpair/abundances.cxb,KO.hy3.1/cuffquant_firststrand_unpair/abundances.cxb,KO.hy4.1/cuffqua    nt_firststrand_unpair/abundances.cxb \
-#      KO.RA1.1/cuffquant_firststrand_unpair/abundances.cxb,KO.RA2/cuffquant_firststrand_un    pair/abundances.cxb,KO.RA3.1/cuffquant_firststrand_unpair/abundances.cxb,KO.RA4/cuffquant_f    irststrand_unpair/abundances.cxb \
-#      WT.hy1.1/cuffquant_firststrand_unpair/abundances.cxb,WT.hy2.1/cuffquant_firststrand_    unpair/abundances.cxb,WT.hy3.1/cuffquant_firststrand_unpair/abundances.cxb,WT.hy4.1/cuffqua    nt_firststrand_unpair/abundances.cxb \
-#      WT.RA1.1/cuffquant_firststrand_unpair/abundances.cxb,WT.RA2/cuffquant_firststrand_un    pair/abundances.cxb,WT.RA3/cuffquant_firststrand_unpair/abundances.cxb,WT.RA4.1/cuffquant_f    irststrand_unpair/abundances.cxb 
 
-# cuffdiff --num-threads 48 --output-dir cuffmerge/cuffdiff --library-type fr-firststrand \
-#     cuffmerge/merged.gtf \
-#     -L KO.hy,KO.RA,WT.hy,WT.RA \
-#     KO.hy1.1/cuffquant/abundances.cxb,KO.hy2.1/cuffquant/abundances.cxb,KO.hy3.1/cuffquan    t/abundances.cxb,KO.hy4.1/cuffquant/abundances.cxb \
-#     KO.RA1.1/cuffquant/abundances.cxb,KO.RA2/cuffquant/abundances.cxb,KO.RA3.1/cuffquant/    abundances.cxb,KO.RA4/cuffquant/abundances.cxb \
-#     WT.hy1.1/cuffquant/abundances.cxb,WT.hy2.1/cuffquant/abundances.cxb,WT.hy3.1/cuffquan    t/abundances.cxb,WT.hy4.1/cuffquant/abundances.cxb \
-#     WT.RA1.1/cuffquant/abundances.cxb,WT.RA2/cuffquant/abundances.cxb,WT.RA3/cuffquant/ab    undances.cxb,WT.RA4.1/cuffquant/abundances.cxb \
+
     print("Run Time for {} option : {:.4f} h\n\n".format(options,(time.time() - startTime)/3600.0))
     sys.exit(0)
 

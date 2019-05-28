@@ -34,18 +34,20 @@ def print_help(Arg):
     sys.stdout.write(
             "USAGE : ./src/driver.py [options] /abs/path/to/workspace  /abs/path/to/ref\n"
             "   [options] = 'all' : Builds data, runs all tests\n"
-            "             = 'build_mat_mult_data'    : Builds matrix_multiply data \n"
-            "             = 'mat_mult_cache_opt'     : Run matrix_multiply_cache_opt tests\n"
+            "             = 'build_mat_mult_data' : Builds matrix_multiply data \n"
+            "             = 'mat_mult_cache_opt'  : Run matrix_multiply_cache_opt tests\n"
             "             = 'mat_mult_non_cache_opt' : Run matrix_multiply_cache_opt tests\n"
-            "             = 'build_rnaseq_data'      : Creates single end RNA-Seq data\n"
-            "             = 'align_rnaseq_tophat'    : Align samples in data/rnaseq w/ tophat\n"
-            "             = 'align_rnaseq_hisat'     : Align samples in data/rnaseq w/ hisat\n"
-            "             = 'cufflinks_assemble'     : Must have run tophat. Assembles transcriptome\n"
-            "             = 'cuffmerge'              : Must have run tophat and cufflinks\n"
-            "             = 'cuffcompare'            : Must have run tophat,cufflinks\n"
-            "             = 'cuffquant'              : Must have run tophat,cufflinks,cuffmerge\n"
-            "             = 'kelvin'                 : Runs kelvin (a statistical genetics software) \n"
-            "             = 'local_memory_access'    : grep's a large file in temp\n"
+            "             = 'build_rnaseq_data'   : Creates single end RNA-Seq data\n"
+            "             = 'align_rnaseq_tophat' : Align samples in data/rnaseq w/ tophat\n"
+            "             = 'align_rnaseq_hisat'  : Align samples in data/rnaseq w/ hisat\n"
+            "             = 'cufflinks_assemble'  : Must have run tophat. Assembles transcriptome\n"
+            "             = 'cuffmerge'           : Must have run tophat and cufflinks\n"
+            "             = 'cuffcompare'         : Must have run tophat,cufflinks\n"
+            "             = 'cuffquant'           : Must have run tophat,cufflinks,cuffmerge\n"
+            "             = 'cuffnorm'            : Must have run tophat,cufflinks,"
+                                                    "cuffmerge and cuffquant\n"
+            "             = 'kelvin'              : Runs kelvin (a statistical genetics software) \n"
+            "             = 'local_memory_access' : grep's a large file in temp\n"
             "   /abs/path/to/workspace    : Path where all the output/data gets saved.\n"
             "   /abs/path/to/ref          : Path where bowtie/hisat indices and ref fasta/gtf"
             "                               are stored\n\n"
@@ -122,7 +124,7 @@ def main():
        options != 'align_rnaseq_tophat' and options != 'align_rnaseq_hisat' and
        options != 'cufflinks_assemble'  and options != 'cuffmerge' and
        options != 'cuffcompare' and options != 'cuffquant' and
-       options != 'kelvin'
+       options != 'cuffnorm' and options != 'kelvin'
     ):
         exit_with_error("ERROR!!! {} is invalid option\n".format(options))
 
@@ -555,6 +557,64 @@ def main():
                 print("--------------------------------------------------------")
 
 
+    if(options == 'all' or options == 'cuffnorm'):
+        print("Quantifying gene expression using cuffquant")
+        print("--------------------------------------------------------")
+        print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
+              "stdev"))
+        print("--------------------------------------------------------")
+        outDirPref = os.path.abspath("{}/output/rnaseq/".format(workPath)) ## prefix
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
+        outDirPref = os.path.abspath("{}/output/rnaseq/cuffnorm".format(workPath)) ## prefix
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
+        inGtfDirPref  = os.path.abspath("{}/output/rnaseq/cuffmerge".format(workPath))   ## prefix
+        inCxbDirPref  = os.path.abspath("{}/output/rnaseq/cuffquant".format(workPath))   ## prefix
+        ## Loop
+        for size in rnaSeqSizeL:
+            cxbFileL  = glob.glob("{}/{}/*/abundances.cxb".format(inCxbDirPref,size))
+            cxbFileL  = sorted(cxbFileL)    ## Break up into replicates
+            # Get treat and wt groups
+            sampNameL = [name.split('/')[-2] for name in cxbFileL]
+            treatIdxL = ['treat_' in name for name in sampNameL]
+            wtIdxL    = ['wt_' in name for name in sampNameL]
+            treatCxbL = []
+            wtCxbL    = []
+            for idx in range(len(treatIdxL)):
+                if(treatIdxL[idx] == True):
+                    treatCxbL.append(cxbFileL[idx])
+                elif(wtIdxL[idx] == True):
+                    wtCxbL.append(cxbFileL[idx])
+                else:
+                    exit_with_error("ERROR!!! neither treatIdxL[idx] {} nor wtIdxL[idx] "
+                                    "{} are" "True".format(treatIdxL[idx], wtIdxL[idx]))
+            
+            outDir = "{}/{}".format(outDirPref,size)
+            gtf="{}/{}/transcripts.gtf".format(inGtfDirPref,size)
+            if(not os.path.isdir(outDir)):
+                os.mkdir(outDir)
+
+            for nThread in ompNumThreadsL:
+                ## Consider adding nTrials here.
+                runTimeV = np.zeros([1])
+                tIdx = 0
+                cmd =  (
+                    "time cuffnorm --num-threads {} --output-dir {} -L {} "
+                      " {} {} {}"
+                      "".format(nThread, outDir, "treat,wt",  gtf, 
+                                ",".join(treatCxbL), ",".join(wtCxbL)))
+                #print(cmd)
+                output = subprocess.getoutput(cmd)
+                runTime = parse_run_time(output,workPath) # Run time
+                runTimeV[tIdx]= runTime
+                tIdx = tIdx + 1
+                print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
+                      np.mean(runTimeV), np.std(runTimeV)))
+                print("--------------------------------------------------------")
+
+
+
 
 
     ## This will only run on Linux, not OSX
@@ -596,7 +656,6 @@ def main():
             print("--------------------------------------------------------")
 
 #### Save for later ####
- # cuffquant --num-threads 10  --output-dir cuffquant --library-type fr-firststrand /gpfs0/h    ome/reshpc/aps003/Projects/Buhimschi/Analysis/chen_mouse/cuffmerge/merged.gtf tophat/accept    ed_hits.bam
 #cuffnorm --num-threads 48 --output-dir cuffmerge_firststrand_unpair/cuffnorm --library-t    ype fr-firststrand \
 #      cuffmerge_firststrand_unpair/merged.gtf \
 #      -L KO.hy,KO.RA,WT.hy,WT.RA \

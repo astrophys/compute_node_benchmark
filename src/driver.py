@@ -42,7 +42,8 @@ def print_help(Arg):
             "             = 'align_rnaseq_hisat'     : Align samples in data/rnaseq w/ hisat\n"
             "             = 'cufflinks_assemble'     : Must have run tophat. Assembles transcriptome\n"
             "             = 'cuffmerge'              : Must have run tophat and cufflinks\n"
-            "             = 'cuffcompare'            : Must have run tophat,cufflinks,cuffmerge\n"
+            "             = 'cuffcompare'            : Must have run tophat,cufflinks\n"
+            "             = 'cuffquant'              : Must have run tophat,cufflinks,cuffmerge\n"
             "             = 'kelvin'                 : Runs kelvin (a statistical genetics software) \n"
             "             = 'local_memory_access'    : grep's a large file in temp\n"
             "   /abs/path/to/workspace    : Path where all the output/data gets saved.\n"
@@ -120,9 +121,10 @@ def main():
        options != 'mat_mult_cache_opt' and options != 'build_rnaseq_data' and
        options != 'align_rnaseq_tophat' and options != 'align_rnaseq_hisat' and
        options != 'cufflinks_assemble'  and options != 'cuffmerge' and
-       options != 'cuffcompare' and options != 'kelvin'
+       options != 'cuffcompare' and options != 'cuffquant' and
+       options != 'kelvin'
     ):
-        exit_with_error("ERROR!!! {} is invalid option\n")
+        exit_with_error("ERROR!!! {} is invalid option\n".format(options))
 
 
     ######## Run Tests ########
@@ -510,6 +512,51 @@ def main():
             print("--------------------------------------------------------")
 
 
+    if(options == 'all' or options == 'cuffquant'):
+        print("Quantifying gene expression using cuffquant")
+        print("--------------------------------------------------------")
+        print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
+              "stdev"))
+        print("--------------------------------------------------------")
+        outDirPref = os.path.abspath("{}/output/rnaseq/".format(workPath)) ## prefix
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
+        outDirPref = os.path.abspath("{}/output/rnaseq/cuffquant".format(workPath)) ## prefix
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
+        inGtfDirPref  = os.path.abspath("{}/output/rnaseq/cuffmerge".format(workPath))   ## prefix
+        inBamDirPref  = os.path.abspath("{}/output/rnaseq/tophat".format(workPath))   ## prefix
+        ## Loop
+        for size in rnaSeqSizeL:
+            bamFileL  = glob.glob("{}/{}/*/accepted_hits.bam".format(inBamDirPref,size))
+            outDir = "{}/{}".format(outDirPref,size)
+            gtf="{}/{}/transcripts.gtf".format(inGtfDirPref,size)
+            if(not os.path.isdir(outDir)):
+                os.mkdir(outDir)
+
+            for nThread in ompNumThreadsL:
+                ## Consider adding nTrials here.
+                runTimeV = np.zeros([len(bamFileL)])
+                for bamFile in bamFileL:
+                    outDirSamp = "{}/{}".format(outDir,bamFile.split("/")[-2].split(".")[0])
+                    if(not os.path.isdir(outDirSamp)):
+                        os.mkdir(outDirSamp)
+                    tIdx = 0
+                    cmd =  (
+                        "time cuffquant --num-threads {} --output-dir {} "
+                        "{} {}"
+                            "".format(nThread, outDirSamp, gtf, bamFile))
+                    output = subprocess.getoutput(cmd)
+                    runTime = parse_run_time(output,workPath) # Run time
+                    runTimeV[tIdx]= runTime
+                    tIdx = tIdx + 1
+                print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
+                      np.mean(runTimeV), np.std(runTimeV)))
+                print("--------------------------------------------------------")
+
+
+
+
     ## This will only run on Linux, not OSX
     if(options == 'all' or options == 'kelvin'):
         print("Runnning Kelving...")
@@ -549,7 +596,6 @@ def main():
             print("--------------------------------------------------------")
 
 #### Save for later ####
-#cuffcompare -o cuffmerge_R1/cuffcompare -r /reference/mus_musculus/GRCm38/ens    embl/release-86/Annotation/Genes/gtf/Mus_musculus.GRCm38.86.gtf -R -s /referen    ce/mus_musculus/GRCm38/ensembl/release-86/Sequence/Chromosomes/ -C -V cuffmerg    e_R1/merged.gtf
  # cuffquant --num-threads 10  --output-dir cuffquant --library-type fr-firststrand /gpfs0/h    ome/reshpc/aps003/Projects/Buhimschi/Analysis/chen_mouse/cuffmerge/merged.gtf tophat/accept    ed_hits.bam
 #cuffnorm --num-threads 48 --output-dir cuffmerge_firststrand_unpair/cuffnorm --library-t    ype fr-firststrand \
 #      cuffmerge_firststrand_unpair/merged.gtf \

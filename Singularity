@@ -182,6 +182,17 @@ Put Help here
         samtools faidx Homo_sapiens.GRCh38.dna.primary_assembly.fa
     fi
 
+    # String Tie
+    wget http://ccb.jhu.edu/software/stringtie/dl/stringtie-1.3.6.Linux_x86_64.tar.gz
+    tar xvzf stringtie-1.3.6.Linux_x86_64.tar.gz
+    rm stringtie-1.3.6.Linux_x86_64.tar.gz
+    mv stringtie-1.3.6.Linux_x86_64 stringtie-1.3.6
+
+    # Ballgown
+    # Must download via bioconductor : 
+    # source("http://bioconductor.org/biocLite.R")
+    # biocLite("ballgown")
+
 
     ########### Get genomics data ##########
 
@@ -198,6 +209,7 @@ Put Help here
     export PATH=/opt/software/bowtie2-2.3.5.1:$PATH
     export PATH=/opt/software/cufflinks-2.2.1:$PATH
     export PATH=/opt/software/samtools-1.9/bin:$PATH
+    export PATH=/opt/software/stringtie-1.3.6:$PATH
 
     # Generate files to run - This won't work here b/c it will try to write files to a directory and recall Singularity images cannot modify themselves in runscript. Recall we can use SINGULARITYENV_PATH
     ## I think python3 src/driver.py all will replace below code - be sure it writes, reads, and cleans up tmp 

@@ -103,7 +103,16 @@ def main():
     # Create work path dir if doesn't exist
     if(not os.path.isdir(workPath)):
         os.mkdir(workPath)
-
+    # Get operating system and list of cores (linux only)
+    curOS = sys.platform
+    if(curOS == 'darwin'):
+        curOS = 'osx'                   # Rename for my own selfish readability
+    elif(curOS == 'linux'):
+        cmd = "grep -P 'processor[\t ]' /proc/cpuinfo | cut -d: -f2 | tr -d ' '"
+        coreIDL = subprocess.getoutput(cmd)
+        coreIDL = [int(idx) for idx in coreIDL.split()]
+    else:
+        exit_with_error("ERROR!! {} is an unsupported operating system".format(curOS))
 
 
     ## In Linux singularity container add cores per socket and total cores to ompNumThreadsL

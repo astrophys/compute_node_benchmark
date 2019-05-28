@@ -1,5 +1,4 @@
 Did:
-1. Oops. Deleted duplicate cuffnorm in driver.py
 
 To Do:
 2. Install modern gcc like 7.0 or 8.0
@@ -37,3 +36,4 @@ To Do:
 31. Check that runTimeV and tIdx is correct size in all options
 33. Check that cuffnorm outputs reasonable results. 
 34. Add note to kelvin (once committed) noting that it is not for general consumption.
+35. Add stringtie and ballgown (if I have time).

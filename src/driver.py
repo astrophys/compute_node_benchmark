@@ -42,6 +42,7 @@ def print_help(Arg):
             "             = 'align_rnaseq_hisat'     : Align samples in data/rnaseq w/ hisat\n"
             "             = 'cufflinks_assemble'     : Must have run tophat. Assembles transcriptome\n"
             "             = 'cuffmerge'              : Must have run tophat and cufflinks\n"
+            "             = 'cuffcompare'            : Must have run tophat,cufflinks,cuffmerge\n"
             "             = 'kelvin'                 : Runs kelvin (a statistical genetics software) \n"
             "             = 'local_memory_access'    : grep's a large file in temp\n"
             "   /abs/path/to/workspace    : Path where all the output/data gets saved.\n"
@@ -119,7 +120,7 @@ def main():
        options != 'mat_mult_cache_opt' and options != 'build_rnaseq_data' and
        options != 'align_rnaseq_tophat' and options != 'align_rnaseq_hisat' and
        options != 'cufflinks_assemble'  and options != 'cuffmerge' and
-       options != 'kelvin'
+       options != 'cuffcompare' and options != 'kelvin'
     ):
         exit_with_error("ERROR!!! {} is invalid option\n")
 
@@ -309,12 +310,17 @@ def main():
                     if(os.path.isfile("/Users/asnedden/.local/virtualenvs/python2.7/bin/python")):
                         # My OSX configuration b/c I use virtualenv
                         python2="source ~/.local/virtualenvs/python2.7/bin/activate;"
+                        cmd =  (
+                            "{}; time tophat2 -p {} -o {} {} {}"
+                            "".format(python2,nThread, outDir,
+                            bowtieIdxPath, samp))
                     else:
-                        # On CentOS, default python is 2.6.6
-                        python2="/usr/bin/python"
-                    cmd =  (
-                        "{}; time tophat2 -p {} -o {} {} {}"
-                       "".format(python2,nThread, outDir, bowtieIdxPath, samp))
+                    #    # On CentOS, default python is 2.6.6
+                    #    python2="/usr/bin/python"
+                        cmd =  (
+                            "time tophat2 -p {} -o {} {} {}"
+                            "".format(nThread, outDir,
+                            bowtieIdxPath, samp))
                     output = subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
                     runTimeV[tIdx]= runTime
@@ -444,13 +450,19 @@ def main():
                 if(os.path.isfile("/Users/asnedden/.local/virtualenvs/python2.7/bin/python")):
                     # My OSX configuration b/c I use virtualenv
                     python2="source ~/.local/virtualenvs/python2.7/bin/activate;"
+                    cmd =  (
+                        "{};"
+                        "time  cuffmerge --num-threads {} -o {} "
+                        "--ref-gtf {} --ref-sequence {} {}"
+                        "".format(python2,nThread, outDir, gtf, genome,
+                        assemblyPath))
                 else:
-                    # On CentOS, default python is 2.6.6
-                    python2="/usr/bin/python"
-                cmd =  (
-                    "{};"
-                    "time  cuffmerge --num-threads {} -o {} --ref-gtf {} --ref-sequence {} {}"
-                   "".format(python2,nThread, outDir, gtf, genome, assemblyPath))
+                #    # On CentOS, default python is 2.6.6
+                #    python2="/usr/bin/python"
+                    cmd =  (
+                        "time  cuffmerge --num-threads {} -o {} "
+                        "--ref-gtf {} --ref-sequence {} {}"
+                        "".format(nThread, outDir, gtf, genome, assemblyPath))
                 output = subprocess.getoutput(cmd)
                 runTime = parse_run_time(output,workPath) # Run time
                 runTimeV[tIdx]= runTime
@@ -458,6 +470,44 @@ def main():
                 print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
                       np.mean(runTimeV), np.std(runTimeV)))
                 print("--------------------------------------------------------")
+
+
+    if(options == 'all' or options == 'cuffcompare'):
+        print("Comparing cufflinks gtf using cuffcompare")
+        print("--------------------------------------------------------")
+        print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
+              "stdev"))
+        print("--------------------------------------------------------")
+        # Check and make directory structure
+        outDirPref = os.path.abspath("{}/output/rnaseq/".format(workPath)) ## prefix
+        if(not os.path.isdir(outDirPref)):
+            exit_with_error("ERROR!!! Expecting {}/output/rnaseq. Must have run tophat "
+                            "and cufflinks prior\n".format(workPath))
+        outDirPref = os.path.abspath("{}/output/rnaseq/cuffcompare".format(workPath)) 
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
+        inDirPref  = os.path.abspath("{}/output/rnaseq/cufflinks".format(workPath))   ## prefix
+        gtf="{}/Homo_sapiens.GRCh38.83.gtf".format(refPath)
+        genome="{}/Homo_sapiens.GRCh38.dna.primary_assembly.fa".format(refPath)
+        nThread = 1
+        ## Loop
+        for size in rnaSeqSizeL:
+            sampFileL   = glob.glob("{}/{}/*/transcripts.gtf".format(inDirPref,size))
+            outPref = "{}/{}".format(outDirPref,size)
+
+            ## Consider adding nTrials here.
+            runTimeV = np.zeros([1])
+            tIdx = 0
+            cmd =  (
+                    "time cuffcompare -o {} -r {} -R -C -V {}"
+                    "".format(outPref, gtf, " ".join(sampFileL)))
+            output = subprocess.getoutput(cmd)
+            runTime = parse_run_time(output,workPath) # Run time
+            runTimeV[tIdx]= runTime
+            tIdx = tIdx + 1
+            print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
+                  np.mean(runTimeV), np.std(runTimeV)))
+            print("--------------------------------------------------------")
 
 
     ## This will only run on Linux, not OSX
@@ -499,7 +549,6 @@ def main():
             print("--------------------------------------------------------")
 
 #### Save for later ####
-# cuffmerge --num-threads 20 -o cuffmerge_R2 --ref-gtf /reference/mus_musculus    /GRCm38/ensembl/release-86/Annotation/Genes/gtf/Mus_musculus.GRCm38.86.gtf --r    ef-sequence /reference/mus_musculus/GRCm38/ensembl/release-86/Sequence/WholeGe    nomeFasta/Mus_musculus.GRCm38.dna.primary_assembly.fa cuffmerge_R2/assemblies.    txt
 #cuffcompare -o cuffmerge_R1/cuffcompare -r /reference/mus_musculus/GRCm38/ens    embl/release-86/Annotation/Genes/gtf/Mus_musculus.GRCm38.86.gtf -R -s /referen    ce/mus_musculus/GRCm38/ensembl/release-86/Sequence/Chromosomes/ -C -V cuffmerg    e_R1/merged.gtf
  # cuffquant --num-threads 10  --output-dir cuffquant --library-type fr-firststrand /gpfs0/h    ome/reshpc/aps003/Projects/Buhimschi/Analysis/chen_mouse/cuffmerge/merged.gtf tophat/accept    ed_hits.bam
 #cuffnorm --num-threads 48 --output-dir cuffmerge_firststrand_unpair/cuffnorm --library-t    ype fr-firststrand \

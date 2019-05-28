@@ -45,6 +45,7 @@ def print_help(Arg):
             "             = 'cuffcompare'         : Must have run tophat,cufflinks\n"
             "             = 'cuffquant'           : Must have run tophat,cufflinks,cuffmerge\n"
             "             = 'cuffnorm'            : Must have run tophat,cufflinks,"
+            "             = 'cuffdiff'            : Must have run tophat,cufflinks,"
                                                     "cuffmerge and cuffquant\n"
             "             = 'kelvin'              : Runs kelvin (a statistical genetics software) \n"
             "             = 'local_memory_access' : grep's a large file in temp\n"
@@ -124,7 +125,7 @@ def main():
        options != 'align_rnaseq_tophat' and options != 'align_rnaseq_hisat' and
        options != 'cufflinks_assemble'  and options != 'cuffmerge' and
        options != 'cuffcompare' and options != 'cuffquant' and
-       options != 'cuffnorm' and options != 'kelvin'
+       options != 'cuffnorm' and options != 'cuffdiff' and options != 'kelvin'
     ):
         exit_with_error("ERROR!!! {} is invalid option\n".format(options))
 
@@ -601,6 +602,122 @@ def main():
                 tIdx = 0
                 cmd =  (
                     "time cuffnorm --num-threads {} --output-dir {} -L {} "
+                      " {} {} {}"
+                      "".format(nThread, outDir, "treat,wt",  gtf, 
+                                ",".join(treatCxbL), ",".join(wtCxbL)))
+                #print(cmd)
+                output = subprocess.getoutput(cmd)
+                runTime = parse_run_time(output,workPath) # Run time
+                runTimeV[tIdx]= runTime
+                tIdx = tIdx + 1
+                print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
+                      np.mean(runTimeV), np.std(runTimeV)))
+                print("--------------------------------------------------------")
+
+
+
+    if(options == 'all' or options == 'cuffnorm'):
+        print("Quantifying gene expression using cuffquant")
+        print("--------------------------------------------------------")
+        print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
+              "stdev"))
+        print("--------------------------------------------------------")
+        outDirPref = os.path.abspath("{}/output/rnaseq/".format(workPath)) ## prefix
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
+        outDirPref = os.path.abspath("{}/output/rnaseq/cuffnorm".format(workPath)) ## prefix
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
+        inGtfDirPref  = os.path.abspath("{}/output/rnaseq/cuffmerge".format(workPath))   ## prefix
+        inCxbDirPref  = os.path.abspath("{}/output/rnaseq/cuffquant".format(workPath))   ## prefix
+        ## Loop
+        for size in rnaSeqSizeL:
+            cxbFileL  = glob.glob("{}/{}/*/abundances.cxb".format(inCxbDirPref,size))
+            cxbFileL  = sorted(cxbFileL)    ## Break up into replicates
+            # Get treat and wt groups
+            sampNameL = [name.split('/')[-2] for name in cxbFileL]
+            treatIdxL = ['treat_' in name for name in sampNameL]
+            wtIdxL    = ['wt_' in name for name in sampNameL]
+            treatCxbL = []
+            wtCxbL    = []
+            for idx in range(len(treatIdxL)):
+                if(treatIdxL[idx] == True):
+                    treatCxbL.append(cxbFileL[idx])
+                elif(wtIdxL[idx] == True):
+                    wtCxbL.append(cxbFileL[idx])
+                else:
+                    exit_with_error("ERROR!!! neither treatIdxL[idx] {} nor wtIdxL[idx] "
+                                    "{} are" "True".format(treatIdxL[idx], wtIdxL[idx]))
+            
+            outDir = "{}/{}".format(outDirPref,size)
+            gtf="{}/{}/transcripts.gtf".format(inGtfDirPref,size)
+            if(not os.path.isdir(outDir)):
+                os.mkdir(outDir)
+
+            for nThread in ompNumThreadsL:
+                ## Consider adding nTrials here.
+                runTimeV = np.zeros([1])
+                tIdx = 0
+                cmd =  (
+                    "time cuffnorm --num-threads {} --output-dir {} -L {} "
+                      " {} {} {}"
+                      "".format(nThread, outDir, "treat,wt",  gtf, 
+                                ",".join(treatCxbL), ",".join(wtCxbL)))
+                #print(cmd)
+                output = subprocess.getoutput(cmd)
+                runTime = parse_run_time(output,workPath) # Run time
+                runTimeV[tIdx]= runTime
+                tIdx = tIdx + 1
+                print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format(size, nThread,
+                      np.mean(runTimeV), np.std(runTimeV)))
+                print("--------------------------------------------------------")
+
+
+
+    if(options == 'all' or options == 'cuffdiff'):
+        print("Quantifying gene expression using cuffquant")
+        print("--------------------------------------------------------")
+        print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
+              "stdev"))
+        print("--------------------------------------------------------")
+        outDirPref = os.path.abspath("{}/output/rnaseq/".format(workPath)) ## prefix
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
+        outDirPref = os.path.abspath("{}/output/rnaseq/cuffdiff".format(workPath)) ## prefix
+        if(not os.path.isdir(outDirPref)):
+            os.mkdir(outDirPref)
+        inGtfDirPref  = os.path.abspath("{}/output/rnaseq/cuffmerge".format(workPath))   ## prefix
+        inCxbDirPref  = os.path.abspath("{}/output/rnaseq/cuffquant".format(workPath))   ## prefix
+        ## Loop
+        for size in rnaSeqSizeL:
+            cxbFileL  = glob.glob("{}/{}/*/abundances.cxb".format(inCxbDirPref,size))
+            cxbFileL  = sorted(cxbFileL)    ## Break up into replicates
+            # Get treat and wt groups
+            sampNameL = [name.split('/')[-2] for name in cxbFileL]
+            treatIdxL = ['treat_' in name for name in sampNameL]
+            wtIdxL    = ['wt_' in name for name in sampNameL]
+            treatCxbL = []
+            wtCxbL    = []
+            for idx in range(len(treatIdxL)):
+                if(treatIdxL[idx] == True):
+                    treatCxbL.append(cxbFileL[idx])
+                elif(wtIdxL[idx] == True):
+                    wtCxbL.append(cxbFileL[idx])
+                else:
+                    exit_with_error("ERROR!!! neither treatIdxL[idx] {} nor wtIdxL[idx] "
+                                    "{} are" "True".format(treatIdxL[idx], wtIdxL[idx]))
+            
+            outDir = "{}/{}".format(outDirPref,size)
+            gtf="{}/{}/transcripts.gtf".format(inGtfDirPref,size)
+            if(not os.path.isdir(outDir)):
+                os.mkdir(outDir)
+
+            for nThread in ompNumThreadsL:
+                ## Consider adding nTrials here.
+                runTimeV = np.zeros([1])
+                tIdx = 0
+                cmd =  (
+                    "time cuffdiff --num-threads {} --output-dir {} -L {} "
                       " {} {} {}"
                       "".format(nThread, outDir, "treat,wt",  gtf, 
                                 ",".join(treatCxbL), ",".join(wtCxbL)))

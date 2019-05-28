@@ -33,5 +33,6 @@ To Do:
 29. Check that taskset is in fact actually doing what I think it should. 
     --> see top -> 'press 1'
 30. Plot columns 1:2 from stream output, see how it goes
-31. Check that runTimeV and tIdx is correct size.
+31. Check that runTimeV and tIdx is correct size in all options
 32. Append command to output for all options.
+33. Check that cuffnorm outputs reasonable results. 

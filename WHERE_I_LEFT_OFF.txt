@@ -37,3 +37,5 @@ To Do:
 33. Check that cuffnorm outputs reasonable results. 
 34. Add note to kelvin (once committed) noting that it is not for general consumption.
 35. Add stringtie and ballgown (if I have time).
+36. Fix simulate_fastq to not use seeded random numbers.
+37. Create larger dataset for hisat.

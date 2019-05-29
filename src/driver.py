@@ -18,6 +18,7 @@ import shutil
 import bisect
 from error import exit_with_error
 from functions import parse_run_time
+from functions import get_core_ids
 
 def print_help(Arg):
     """
@@ -103,17 +104,6 @@ def main():
     # Create work path dir if doesn't exist
     if(not os.path.isdir(workPath)):
         os.mkdir(workPath)
-    # Get operating system and list of cores (linux only)
-    curOS = sys.platform
-    if(curOS == 'darwin'):
-        curOS = 'osx'                   # Rename for my own selfish readability
-    elif(curOS == 'linux'):
-        cmd = "grep -P 'processor[\t ]' /proc/cpuinfo | cut -d: -f2 | tr -d ' '"
-        coreIDL = subprocess.getoutput(cmd)
-        coreIDL = [int(idx) for idx in coreIDL.split()]
-    else:
-        exit_with_error("ERROR!! {} is an unsupported operating system".format(curOS))
-
 
     ## In Linux singularity container add cores per socket and total cores to ompNumThreadsL
     if(shutil.which('lscpu') != None):
@@ -121,12 +111,37 @@ def main():
         coresPerSocket = int(subprocess.getoutput(cmd))
         cmd="lscpu  | grep '^CPU(s):' | awk '{print $2}'"
         totalCores = int(subprocess.getoutput(cmd))
+        cmd="lscpu | grep 'NUMA node0 CPU' | awk '{print $4}'"
+        ## Numa - node
+        coresPerNuma = subprocess.getoutput(cmd)
+        coresPerNuma = coresPerNuma.split('-')
+        coresPerNuma[0] = int(coresPerNuma[0])
+        coresPerNuma[1] = int(coresPerNuma[1])
+        coresPerNuma = coresPerNuma[1] - coresPerNuma[0] + 1
+        ## Insert
+        bisect.insort_left(ompNumThreadsL, coresPerNuma)
         bisect.insort_left(ompNumThreadsL, coresPerSocket)
         bisect.insort_left(ompNumThreadsL, totalCores)
         ompNumThreadsL=list(sorted(set(ompNumThreadsL)))
+        print("Cores per NUMA : {}".format(coresPerNuma))
         print("Cores per socket : {}".format(coresPerSocket))
         print("Total Cores : {}".format(totalCores))
         print("Cores tested : {}".format(ompNumThreadsL))
+
+    # Get operating system and list of cores (linux only) to take advantage of NUMA
+    curOS = sys.platform
+    if(curOS == 'darwin'):
+        curOS = 'osx'         # Rename for my own selfish readability
+    elif(curOS == 'linux'):
+        cmd = "grep -P 'processor[\t ]' /proc/cpuinfo | cut -d: -f2 | tr -d ' '"
+        coreIDL = subprocess.getoutput(cmd)
+        coreIDL = [int(idx) for idx in coreIDL.split()]
+        ompCoresLL = []       # List of list cores to use associated with ompNumThreadsL
+        for nThread in ompNumThreadsL:
+            ompCoresLL.append(get_core_ids(NumThreads = nThread))
+
+    else:
+        exit_with_error("ERROR!! {} is an unsupported operating system".format(curOS))
 
     if(options != 'all' and options != 'build_mat_mult_data' and 
        options != 'mat_mult_non_cache_opt' and options != 'local_memory_access' and
@@ -638,7 +653,7 @@ def main():
 
 
     if(options == 'all' or options == 'cuffdiff'):
-        print("Quantifying gene expression using cuffquant")
+        print("Quantifying gene expression using cuffdiff")
         print("--------------------------------------------------------")
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))

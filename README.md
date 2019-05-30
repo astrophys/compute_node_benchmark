@@ -43,7 +43,7 @@ Please return to us :
 
    `$ export SINGULARITYENV_PREV_OUTPUT=/tmp/prev_benchmarking_out`
 
-   `$ singularity run --nv -H /home/group/user test.simg   ## Runs prebuilt tests`
+   `$ singularity run --nv -H /home/group/user test.simg`
 
 Note:
 Typically one would copy `benchmarking_out` from a previous run to `/tmp/prev_benchmarking_out` and then `SINGULARITYENV_PREV_OUTPUT=/tmp/prev_benchmarking_out`

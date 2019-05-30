@@ -38,12 +38,15 @@ Please return to us :
 
 #### Devs only:
 1. If you want to unit test particular parts of the Singularity container, you can do this with something like :
+
    `$ export SINGULARITYENV_UNIT_TEST=cuffmerge`
+
    `$ export SINGULARITYENV_PREV_OUTPUT=/tmp/prev_benchmarking_out`
+
    `$ singularity run --nv -H /home/group/user test.simg   ## Runs prebuilt tests`
 
 Note:
-Typically one would copy benchmarking_out from a previous run to /tmp/prev_benchmarking_out and then SINGULARITYENV_PREV_OUTPUT=/tmp/prev_benchmarking_out
+Typically one would copy `benchmarking_out` from a previous run to `/tmp/prev_benchmarking_out` and then `SINGULARITYENV_PREV_OUTPUT=/tmp/prev_benchmarking_out`
 
 
 ## What this code does:

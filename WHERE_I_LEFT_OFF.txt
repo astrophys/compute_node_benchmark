@@ -1,43 +1,33 @@
 Did:
 
 To Do:
-2. Install modern gcc like 7.0 or 8.0
-3. Figure out how to handle arbitrary number of cores in a machine for testing
-4. Add error checks matrix_multiply_omp_cache_optimized.c for CL args
-5. Check that AB_result.txt from numpy is same as from matrix_multiply
-7. Test lapack
-8. Add License
-12. simulate_fastq : 
+1. Install modern gcc like 7.0 or 8.0
+2. Add error checks matrix_multiply_omp_cache_optimized.c for CL args
+3. Check that AB_result.txt from numpy is same as from matrix_multiply
+4. Test lapack
+5. simulate_fastq : 
     a) Randomly sample quality space from probability distribution function
     b) Add switch for single end vs. paired end reads (include --fr, --rf and unstranded). In
        FASTQ_READ()
        --> See functions.py : 924
        --> See : http://onetipperday.sterding.com/2012/07/how-to-tell-which-library-type-to-use.html
     c) Add CL or config variable for mu and sigma for insert length
-13. Add file access time on /dev/shm
-15. Check that my reads are correctly mapping to the transcripts: 
+6. Check that my reads are correctly mapping to the transcripts: 
     Single exons : 
-16. Fix number of reads at CL vs. config.txt
-17. Check that I handle direction correctly (+/-) in ensembl's gtf format correctly
-18. Change nomenclature from forward/reverse sense/antisense strand
+7. Fix number of reads at CL vs. config.txt - currently both look set, only CL
+   option used
+8. Check that I handle direction correctly (+/-) in ensembl's gtf format correctly
+9. Change nomenclature from forward/reverse sense/antisense strand
 
-19. Figure out how to pass shell variables in singularity during build time
-21. Consider adding nTrials to cuffmerge.
-22. Add ability to select number of threads based on cores per socket and total number of threads in driver.py
-23. Add notes about correct usage of workPath and refPath to README.md
-24. Change matrixSizeL to larger values.
-25. Make note about stream license
-26. Test singularity build when ref is unavailable.
-27. Fix kelvin option so it can be run from the toplevel directory.
-28. Don't forget to uncomment matrix multiplication routines in recipe file.
-29. Check that taskset is in fact actually doing what I think it should. 
+10. Figure out how to pass shell variables in singularity during build time
+11. Test singularity build when ref is unavailable.
+12. Don't forget to uncomment matrix multiplication routines in recipe file.
+13. Check that taskset is in fact actually doing what I think it should. 
     --> see top -> 'press 1'
-30. Plot columns 1:2 from stream output, see how it goes
-31. Check that runTimeV and tIdx is correct size in all options
-33. Check that cuffnorm outputs reasonable results. 
-34. Add note to kelvin (once committed) noting that it is not for general consumption.
-35. Add stringtie and ballgown (if I have time).
-36. Fix simulate_fastq to not use seeded random numbers.
-37. Create larger dataset for hisat.
-38. change single.post -> clean.post 
-39. Add core binding to stream
+14. Check that runTimeV and tIdx is correct size in all options
+15. Check that cuffnorm outputs reasonable results. 
+16. Add note to kelvin (once committed) noting that it is not for general consumption.
+17. Add stringtie and ballgown (if I have time).
+18. Fix simulate_fastq to not use seeded random numbers.
+19. Create larger dataset for hisat.
+20. change single.post -> clean.post 

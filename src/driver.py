@@ -101,6 +101,7 @@ def main():
     #rnaSeqSizeL = [10**4,10**5,10**6]   
     rnaSeqSizeL = [2*10**4,10**5]
     nTrials     = 3                     # number of trials to test,get stdev and mean
+    shortNTrials= 1                # shortened num of trials to test,get stdev and mean
     # Create work path dir if doesn't exist
     if(not os.path.isdir(workPath)):
         os.mkdir(workPath)
@@ -171,14 +172,14 @@ def main():
             outDir = "{}/{}".format(outDirPrefix,size)
             if(not os.path.isdir(outDir)):
                 os.mkdir(outDir)
-            runTimeV = np.zeros([nTrials])
-            for tIdx in range(nTrials):   ### change to nTrials
+            runTimeV = np.zeros([shortNTrials])
+            for tIdx in range(shortNTrials):   ### change to shortNTrials
                 if(curOS == 'linux'):
                     taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
                 else:
                     taskset = ""
-                cmd =  taskset + "python3 src/matrix/matrix_generator.py {} 10000 "
-                             "10000 {} {}".format(size, size, outDir)
+                cmd =  "{} python3 src/matrix/matrix_generator.py {} 10000 "
+                             "10000 {} {}".format(taskset, size, size, outDir)
                 output = "{}\n".format(cmd)
                 output = output + subprocess.getoutput(cmd)
                 runTime = parse_run_time(output,workPath) # Run time
@@ -289,9 +290,6 @@ def main():
         outDir  = "{}/fastq/".format(outDir)
         if(not os.path.isdir(outDir)):
             os.mkdir(outDir)
-        #gtf="/reference/homo_sapiens/GRCh38/ensembl/release-83/Annotation/Genes/gtf/Homo_sapiens.GRCh38.83.gtf"
-        #genome ="/reference/homo_sapiens/GRCh38/ensembl/release-83/Sequence/WholeGenomeFasta/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
-        #configL=["config/config_wt.txt", "config/config_treat.txt"]
         ## Loop
         for size in rnaSeqSizeL:
             runTimeV = np.zeros([nSamp*len(configL)])
@@ -635,7 +633,7 @@ def main():
 
 
     if(options == 'all' or options == 'cuffnorm'):
-        print("Quantifying gene expression using cuffquant")
+        print("Quantifying gene expression using cuffnorm")
         print("--------------------------------------------------------")
         print(" {:<10} | {:<12} | {:<15} | {:<15}".format("Size", "OMP_Threads", "mean",
               "stdev"))

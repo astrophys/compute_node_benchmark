@@ -237,12 +237,8 @@ Put Help here
     python3 src/driver.py cuffquant /tmp/benchmarking_out/ /opt/ref/
     python3 src/driver.py cuffnorm /tmp/benchmarking_out/ /opt/ref/
     python3 src/driver.py cuffdiff /tmp/benchmarking_out/ /opt/ref/
+    python3 src/driver.py kelvin /tmp/benchmarking_out/ /opt/ref/
 
-    ## This source code is unavailable, 
-    #if [ -d src/kelvin ]; then 
-    #    python3 src/driver.py kelvin /tmp/benchmarking_out/ /opt/ref/
-    #fi
-    
 
     ### Run stream multiple times ###
     echo "Running STREAM_ARRAY_SIZE = 10M" 

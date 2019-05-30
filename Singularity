@@ -109,11 +109,10 @@ Put Help here
     mv /tmp/config /opt/code/benchmarking
     mv /tmp/README.md /opt/code/benchmarking
     mv /tmp/Singularity /opt/code/benchmarking
-    mv /tmp/ref /opt/code/benchmarking
 
     # If reference directory exists, use it
-    if [ -d "/opt/code/benchmarking/ref" ]; then 
-        mv /opt/code/benchmarking/ref /opt
+    if [ -d "/tmp/ref" ]; then 
+        mv /tmp/ref /opt
     # If not, download
     else
         ## Untested

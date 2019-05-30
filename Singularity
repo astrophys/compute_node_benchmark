@@ -13,10 +13,18 @@ Include: yum
 #   1. rm test.simg
 #      sudo SINGULARITYENV_CODEPATH=/some/path/to/the/benchmarking_dir; singularity build test.simg Singularity
 #      sudo chown user:group test.simg
-# Run : 
+# Run (all tests) : 
 #   0. Turn off multithreading
 #   1. singularity run --nv -H /home/group/user test.simg   ## Runs prebuilt tests
-#   2. singularity exec --nv -H /home/group/user test.simg  cmd  ## Runs cmd 
+#
+# Run (unit_test) : 
+#   0. Turn off multithreading
+#   E.g. to test cuffmerge option to driver.py : 
+#   1. export SINGULARITYENV_UNIT_TEST=cuffmerge\
+#      export SINGULARITYENV_PREV_OUTPUT=/tmp/path/to/toplevel/dir/with/data/cuffmerge/depends/on\
+#      singularity run --nv -H /home/group/user test.simg   ## Runs prebuilt tests
+#
+#
 #
 
 
@@ -42,6 +50,7 @@ Put Help here
 #
 # This is additional packages on top of the base image from MirrorURL
 %post
+    echo "CODEPATH=$CODEPATH"
     ls /usr/bin
     yum install -y yum-utils.noarch
     yum install -y epel-release.noarch
@@ -215,54 +224,123 @@ Put Help here
     export PATH=/opt/software/samtools-1.9/bin:$PATH
     export PATH=/opt/software/stringtie-1.3.6:$PATH
 
-    # Generate files to run - This won't work here b/c it will try to write files to a directory and recall Singularity images cannot modify themselves in runscript. Recall we can use SINGULARITYENV_PATH
-    ## I think python3 src/driver.py all will replace below code - be sure it writes, reads, and cleans up tmp 
-    if [ -d "/tmp/benchmarking_out" ]; then 
-        rm -r /tmp/benchmarking_out
+    ## Unit Tests ##
+    if [[ ! -z "${UNIT_TEST}" ]]; then
+        ## For most of these unit tests, previous output must have been generated
+        ## so we'll dump the current output to the same dir as PREV_OUTPUT
+        if [[ -z "${PREV_OUTPUT}" ]]; then
+            echo "ERROR!!! UNIT_TEST set but PREV_OUTPUT is unset" >&2
+            exit 1
+        fi
+
+        rm ${PREV_OUTPUT}/driver.log
+
+        ## Error check that a correct option 
+        if [ ${UNIT_TEST} == "build_mat_mult_data" ]; then 
+            python3 src/driver.py build_mat_mult_data ${PREV_OUTPUT} /opt/ref/
+        elif [ ${UNIT_TEST} == "mat_mult_cache_opt" ]; then 
+            python3 src/driver.py mat_mult_cache_opt ${PREV_OUTPUT} /opt/ref/
+        elif [ ${UNIT_TEST} == "mat_mult_non_cache_opt" ]; then 
+            python3 src/driver.py mat_mult_non_cache_opt ${PREV_OUTPUT} /opt/ref/
+        elif [ ${UNIT_TEST} == "build_rnaseq_data" ]; then 
+            python3 src/driver.py build_rnaseq_data ${PREV_OUTPUT} /opt/ref/
+        elif [ ${UNIT_TEST} == "align_rnaseq_tophat" ]; then 
+            python3 src/driver.py align_rnaseq_tophat ${PREV_OUTPUT} /opt/ref/
+        elif [ ${UNIT_TEST} == "align_rnaseq_hisat" ]; then 
+            python3 src/driver.py align_rnaseq_hisat ${PREV_OUTPUT} /opt/ref/
+        elif [ ${UNIT_TEST} == "cufflinks_assemble" ]; then 
+            python3 src/driver.py cufflinks_assemble ${PREV_OUTPUT} /opt/ref/
+        elif [ ${UNIT_TEST} == "cuffmerge" ]; then 
+            python3 src/driver.py cuffmerge ${PREV_OUTPUT} /opt/ref/
+        elif [ ${UNIT_TEST} == "cuffcompare" ]; then 
+            python3 src/driver.py cuffcompare ${PREV_OUTPUT} /opt/ref/
+        elif [ ${UNIT_TEST} == "cuffquant" ]; then 
+            python3 src/driver.py cuffquant ${PREV_OUTPUT} /opt/ref/
+        elif [ ${UNIT_TEST} == "cuffnorm" ]; then 
+            python3 src/driver.py cuffnorm ${PREV_OUTPUT} /opt/ref/
+        elif [ ${UNIT_TEST} == "cuffdiff" ]; then 
+            python3 src/driver.py cuffdiff ${PREV_OUTPUT} /opt/ref/
+        elif [ ${UNIT_TEST} == "kelvin" ]; then 
+            python3 src/driver.py kelvin ${PREV_OUTPUT} /opt/ref/
+        elif [ ${UNIT_TEST} == "stream" ]; then 
+            echo "Running STREAM_ARRAY_SIZE = 10M" 
+            echo "Run 1"
+            bash src/stream/run_stream.sh src/stream/stream.10M
+            echo "Run 2"
+            bash src/stream/run_stream.sh src/stream/stream.10M
+            echo "Run 3"
+            bash src/stream/run_stream.sh src/stream/stream.10M
+            echo "Run 4"
+            bash src/stream/run_stream.sh src/stream/stream.10M
+            echo "Run 5"
+            bash src/stream/run_stream.sh src/stream/stream.10M
+            echo "Running STREAM_ARRAY_SIZE = 100M" 
+            echo "Run 1"
+            bash src/stream/run_stream.sh src/stream/stream.100M
+            echo "Run 2"
+            bash src/stream/run_stream.sh src/stream/stream.100M
+            echo "Run 3"
+            bash src/stream/run_stream.sh src/stream/stream.100M
+            echo "Run 4"
+            bash src/stream/run_stream.sh src/stream/stream.100M
+            echo "Run 5"
+            bash src/stream/run_stream.sh src/stream/stream.100M
+        else
+            echo "ERROR!!! UNIT_TEST = ${UNIT_TEST} is an invalid option"
+            exit 1
+        fi
+
+    ## Full test ##
+    else
+
+        if [ -d "/tmp/benchmarking_out" ]; then 
+            rm -r /tmp/benchmarking_out
+        fi
+        mkdir -p /tmp/benchmarking_out
+        mkdir -p /tmp/benchmarking_out/data
+        mkdir -p /tmp/benchmarking_out/output
+        cd /opt/code/benchmarking
+        ## Temporarly comment out
+        python3 src/driver.py build_mat_mult_data /tmp/benchmarking_out/ /opt/ref/
+        python3 src/driver.py mat_mult_cache_opt /tmp/benchmarking_out/ /opt/ref/
+        python3 src/driver.py mat_mult_non_cache_opt /tmp/benchmarking_out/ /opt/ref/
+        python3 src/driver.py build_rnaseq_data /tmp/benchmarking_out/ /opt/ref/
+        python3 src/driver.py align_rnaseq_tophat /tmp/benchmarking_out/ /opt/ref/
+        python3 src/driver.py align_rnaseq_hisat /tmp/benchmarking_out/ /opt/ref/
+        python3 src/driver.py cufflinks_assemble /tmp/benchmarking_out/ /opt/ref/
+        python3 src/driver.py cuffmerge /tmp/benchmarking_out/ /opt/ref/
+        python3 src/driver.py cuffcompare /tmp/benchmarking_out/ /opt/ref/
+        python3 src/driver.py cuffquant /tmp/benchmarking_out/ /opt/ref/
+        python3 src/driver.py cuffnorm /tmp/benchmarking_out/ /opt/ref/
+        python3 src/driver.py cuffdiff /tmp/benchmarking_out/ /opt/ref/
+        python3 src/driver.py kelvin /tmp/benchmarking_out/ /opt/ref/
+
+
+        ### Run stream multiple times ###
+        echo "Running STREAM_ARRAY_SIZE = 10M" 
+        echo "Run 1"
+        bash src/stream/run_stream.sh src/stream/stream.10M
+        echo "Run 2"
+        bash src/stream/run_stream.sh src/stream/stream.10M
+        echo "Run 3"
+        bash src/stream/run_stream.sh src/stream/stream.10M
+        echo "Run 4"
+        bash src/stream/run_stream.sh src/stream/stream.10M
+        echo "Run 5"
+        bash src/stream/run_stream.sh src/stream/stream.10M
+        echo "Running STREAM_ARRAY_SIZE = 100M" 
+        echo "Run 1"
+        bash src/stream/run_stream.sh src/stream/stream.100M
+        echo "Run 2"
+        bash src/stream/run_stream.sh src/stream/stream.100M
+        echo "Run 3"
+        bash src/stream/run_stream.sh src/stream/stream.100M
+        echo "Run 4"
+        bash src/stream/run_stream.sh src/stream/stream.100M
+        echo "Run 5"
+        bash src/stream/run_stream.sh src/stream/stream.100M
+
     fi
-    mkdir -p /tmp/benchmarking_out
-    mkdir -p /tmp/benchmarking_out/data
-    mkdir -p /tmp/benchmarking_out/output
-    cd /opt/code/benchmarking
-    ## Temporarly comment out
-    #python3 src/driver.py build_mat_mult_data /tmp/benchmarking_out/ /opt/ref/
-    #python3 src/driver.py mat_mult_cache_opt /tmp/benchmarking_out/ /opt/ref/
-    #python3 src/driver.py mat_mult_non_cache_opt /tmp/benchmarking_out/ /opt/ref/
-    python3 src/driver.py build_rnaseq_data /tmp/benchmarking_out/ /opt/ref/
-    python3 src/driver.py align_rnaseq_tophat /tmp/benchmarking_out/ /opt/ref/
-    python3 src/driver.py align_rnaseq_hisat /tmp/benchmarking_out/ /opt/ref/
-    python3 src/driver.py cufflinks_assemble /tmp/benchmarking_out/ /opt/ref/
-    python3 src/driver.py cuffmerge /tmp/benchmarking_out/ /opt/ref/
-    python3 src/driver.py cuffcompare /tmp/benchmarking_out/ /opt/ref/
-    python3 src/driver.py cuffquant /tmp/benchmarking_out/ /opt/ref/
-    python3 src/driver.py cuffnorm /tmp/benchmarking_out/ /opt/ref/
-    python3 src/driver.py cuffdiff /tmp/benchmarking_out/ /opt/ref/
-    python3 src/driver.py kelvin /tmp/benchmarking_out/ /opt/ref/
-
-
-    ### Run stream multiple times ###
-    echo "Running STREAM_ARRAY_SIZE = 10M" 
-    echo "Run 1"
-    bash src/stream/run_stream.sh src/stream/stream.10M
-    echo "Run 2"
-    bash src/stream/run_stream.sh src/stream/stream.10M
-    echo "Run 3"
-    bash src/stream/run_stream.sh src/stream/stream.10M
-    echo "Run 4"
-    bash src/stream/run_stream.sh src/stream/stream.10M
-    echo "Run 5"
-    bash src/stream/run_stream.sh src/stream/stream.10M
-    echo "Running STREAM_ARRAY_SIZE = 100M" 
-    echo "Run 1"
-    bash src/stream/run_stream.sh src/stream/stream.100M
-    echo "Run 2"
-    bash src/stream/run_stream.sh src/stream/stream.100M
-    echo "Run 3"
-    bash src/stream/run_stream.sh src/stream/stream.100M
-    echo "Run 4"
-    bash src/stream/run_stream.sh src/stream/stream.100M
-    echo "Run 5"
-    bash src/stream/run_stream.sh src/stream/stream.100M
 
     
     echo "I've been run"

@@ -31,3 +31,6 @@ To Do:
 18. Fix simulate_fastq to not use seeded random numbers.
 19. Create larger dataset for hisat.
 20. change single.post -> clean.post 
+21. remove --nv from run command
+22. Add notes about unit tests to Readme
+

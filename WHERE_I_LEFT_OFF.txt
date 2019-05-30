@@ -1,4 +1,5 @@
 Did:
+1. Added taskset calls to cmd in driver.py
 
 To Do:
 2. Install modern gcc like 7.0 or 8.0

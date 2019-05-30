@@ -95,9 +95,9 @@ def main():
     options    = sys.argv[1]
     workPath   = sys.argv[2]           # Path where all the output/work will be saved.
     refPath    = sys.argv[3]           # Path where all the ref data and indices are located
-    ompNumThreadsL = [1,2,5,7,10,15,20] # Cores used in OMP tasks
-    matrixSizeL = [2000,3000,5000]      # outer dim of mats to run matrix_multiply on
-    #matrixSizeL = [2000,3000]      # outer dim of mats to run matrix_multiply on
+    ompNumThreadsL = [1,2,5,20]        # Cores used in OMP tasks
+    matrixSizeL = [2000,3000,5000]     # outer dim of mats to run matrix_multiply on
+    #matrixSizeL = [2000,3000]         # outer dim of mats to run matrix_multiply on
     #rnaSeqSizeL = [10**4,10**5,10**6]   
     rnaSeqSizeL = [2*10**4,10**5]
     nTrials     = 3                     # number of trials to test,get stdev and mean
@@ -136,9 +136,9 @@ def main():
         cmd = "grep -P 'processor[\t ]' /proc/cpuinfo | cut -d: -f2 | tr -d ' '"
         coreIDL = subprocess.getoutput(cmd)
         coreIDL = [int(idx) for idx in coreIDL.split()]
-        ompCoresLL = []       # List of list cores to use associated with ompNumThreadsL
+        ompCoreIdD = dict() # List of list cores to use associated with ompNumThreadsL
         for nThread in ompNumThreadsL:
-            ompCoresLL.append(get_core_ids(NumThreads = nThread))
+            ompCoresIdD[nThread] = get_core_ids(NumThreads = nThread)
 
     else:
         exit_with_error("ERROR!! {} is an unsupported operating system".format(curOS))
@@ -173,8 +173,12 @@ def main():
                 os.mkdir(outDir)
             runTimeV = np.zeros([nTrials])
             for tIdx in range(nTrials):   ### change to nTrials
-                cmd =  "python3 src/matrix/matrix_generator.py {} 10000 10000 {} {}".format(
-                       size, size, outDir)
+                if(curOS == 'linux'):
+                    taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
+                else:
+                    taskset = ""
+                cmd =  taskset + "python3 src/matrix/matrix_generator.py {} 10000 "
+                             "10000 {} {}".format(size, size, outDir)
                 output = "{}\n".format(cmd)
                 output = output + subprocess.getoutput(cmd)
                 runTime = parse_run_time(output,workPath) # Run time
@@ -206,9 +210,15 @@ def main():
                 #nThread = 10
                 #size=2000
                 for tIdx in range(nTrials):
-                    cmd =  ("export OMP_NUM_THREADS={}; ./src/matrix/matrix_multiply_cache_opt "
+                    if(curOS == 'linux'):
+                        taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
+                    else:
+                        taskset = ""
+                    cmd =  ("export OMP_NUM_THREADS={}; {} "
+                            "./src/matrix/matrix_multiply_cache_opt "
                             "{}/data/matrix/{}/A.txt {}/data/matrix/{}/B.txt  "
-                             "{}".format(nThread,workPath,size,workPath,size,outDir))
+                            "{}".format(nThread,taskset,workPath,size,workPath,size,
+                            outDir))
                     output = "{}\n".format(cmd)
                     output = output + subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
@@ -240,10 +250,15 @@ def main():
                 #nThread = 10
                 #size=2000
                 for tIdx in range(nTrials):
-                    cmd =  ("export OMP_NUM_THREADS={}; "
+                    if(curOS == 'linux'):
+                        taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
+                    else:
+                        taskset = ""
+                    cmd =  ("export OMP_NUM_THREADS={}; {} "
                             "./src/matrix/matrix_multiply_non_cache_opt "
                             "{}/data/matrix/{}/A.txt {}/data/matrix/{}/B.txt  "
-                             "{}".format(nThread,workPath,size,workPath,size,outDir))
+                            "{}".format(nThread,taskset,workPath,size,workPath,
+                            size,outDir))
                     output = "{}\n".format(cmd)
                     output = output + subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
@@ -296,10 +311,14 @@ def main():
                         wtSampL.append(outFile)
                     else:
                         exit_with_error("ERROR!!! No correct config file found!\n")
+                    if(curOS == 'linux'):
+                        taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
+                    else:
+                        taskset = ""
                     cmd =  ("export OMP_NUM_THREADS={}; "
-                       "python3 src/simulate_fastq_data/simulate_fastq.py "
+                       "{} python3 src/simulate_fastq_data/simulate_fastq.py "
                        "{} {} {} {} {} single"
-                       "".format(nThread, gtf, genome, config, size, outFile))
+                       "".format(nThread, taskset, gtf, genome, config, size, outFile))
                     output = "{}\n".format(cmd)
                     output = output + subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
@@ -340,21 +359,24 @@ def main():
                     sampDir = samp.split("/")[-1].split(".")[0]
                     ## Set output directory
                     outDir = "{}/{}/{}".format(outDirPref,size,sampDir)
-                    if(os.path.isfile("/Users/asnedden/.local/virtualenvs/python2.7/bin/python")):
+
+                    if(curOS == "osx"):
                         # My OSX configuration b/c I use virtualenv
                         python2="source ~/.local/virtualenvs/python2.7/bin/activate;"
                         cmd =  (
-                            "{}; time tophat2 -p {} -o {} {} {}"
-                            "".format(python2,nThread, outDir,
+                            "{}; time {} tophat2 -p {} -o {} {} {}"
+                            "".format(python2,taskset, nThread, outDir,
                             bowtieIdxPath, samp))
-                    else:
+                    elif(curOS == 'linux'):
                     #    # On CentOS, default python is 2.6.6
                     #    python2="/usr/bin/python"
+                        taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
                         cmd =  (
-                            "time tophat2 -p {} -o {} {} {}"
-                            "".format(nThread, outDir,
+                            "time {} tophat2 -p {} -o {} {} {}"
+                            "".format(taskset, nThread, outDir,
                             bowtieIdxPath, samp))
-                    
+                    else:
+                        exit_with_error("ERROR!!! OS not supported")
                     output = "{}\n".format(cmd)
                     output = output + subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
@@ -395,11 +417,15 @@ def main():
                     sampDir = samp.split("/")[-1].split(".")[0]
                     ## Set output directory
                     outDir = "{}/{}/{}".format(outDirPref,size,sampDir)
+                    if(curOS == 'linux'):
+                        taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
+                    else:
+                        taskset = ""
                     if(not os.path.isdir(outDir)):
                         os.mkdir(outDir)
                     cmd =  (
-                        "time hisat2 -p {} --phred33 -x {} -U {} -S {}/output.sam"
-                       "".format(nThread, hisatIdxPath, samp, outDir))
+                        "time {} hisat2 -p {} --phred33 -x {} -U {} -S {}/output.sam"
+                       "".format(taskset, nThread, hisatIdxPath, samp, outDir))
                     output = "{}\n".format(cmd)
                     output = output + subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
@@ -439,9 +465,13 @@ def main():
                     outDir = "{}/{}/{}".format(outDirPref,size,sampDir)
                     if(not os.path.isdir(outDir)):
                         os.mkdir(outDir)
+                    if(curOS == 'linux'):
+                        taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
+                    else:
+                        taskset = ""
                     cmd =  (
-                        "time cufflinks --num-threads {} -g {} --output-dir {} {}"
-                       "".format(nThread, gtf, outDir, samp))
+                        "time {} cufflinks --num-threads {} -g {} --output-dir {} {}"
+                       "".format(taskset, nThread, gtf, outDir, samp))
                     output = "{}\n".format(cmd)
                     output = output + subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
@@ -484,7 +514,7 @@ def main():
                 ## Consider adding nTrials here.
                 runTimeV = np.zeros([1])
                 tIdx = 0
-                if(os.path.isfile("/Users/asnedden/.local/virtualenvs/python2.7/bin/python")):
+                if(curOS == "osx"):
                     # My OSX configuration b/c I use virtualenv
                     python2="source ~/.local/virtualenvs/python2.7/bin/activate;"
                     cmd =  (
@@ -493,13 +523,16 @@ def main():
                         "--ref-gtf {} --ref-sequence {} {}"
                         "".format(python2,nThread, outDir, gtf, genome,
                         assemblyPath))
-                else:
-                #    # On CentOS, default python is 2.6.6
-                #    python2="/usr/bin/python"
+                elif(curOS == "linux"):
+                    # On CentOS, default python is 2.6.6
+                    # python2="/usr/bin/python"
+                    taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
                     cmd =  (
-                        "time  cuffmerge --num-threads {} -o {} "
+                        "time {} cuffmerge --num-threads {} -o {} "
                         "--ref-gtf {} --ref-sequence {} {}"
-                        "".format(nThread, outDir, gtf, genome, assemblyPath))
+                        "".format(taskset, nThread, outDir, gtf, genome, assemblyPath))
+                else:
+                    exit_with_error("ERROR!!! Unsupported OS.")
                 output = "{}\n".format(cmd)
                 output = output + subprocess.getoutput(cmd)
                 runTime = parse_run_time(output,workPath) # Run time
@@ -536,9 +569,13 @@ def main():
             ## Consider adding nTrials here.
             runTimeV = np.zeros([1])
             tIdx = 0
+            if(curOS == 'linux'):
+                taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
+            else:
+                taskset = ""
             cmd =  (
-                    "time cuffcompare -o {} -r {} -R -C -V {}"
-                    "".format(outPref, gtf, " ".join(sampFileL)))
+                    "time {} cuffcompare -o {} -r {} -R -C -V {}"
+                    "".format(taskset,outPref, gtf, " ".join(sampFileL)))
             output = "{}\n".format(cmd)
             output = output + subprocess.getoutput(cmd)
             runTime = parse_run_time(output,workPath) # Run time
@@ -579,10 +616,14 @@ def main():
                     if(not os.path.isdir(outDirSamp)):
                         os.mkdir(outDirSamp)
                     tIdx = 0
+                    if(curOS == 'linux'):
+                        taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
+                    else:
+                        taskset = ""
                     cmd =  (
-                        "time cuffquant --num-threads {} --output-dir {} "
+                        "time {} cuffquant --num-threads {} --output-dir {} "
                         "{} {}"
-                            "".format(nThread, outDirSamp, gtf, bamFile))
+                            "".format(taskset, nThread, outDirSamp, gtf, bamFile))
                     output = "{}\n".format(cmd)
                     output = output + subprocess.getoutput(cmd)
                     runTime = parse_run_time(output,workPath) # Run time
@@ -635,10 +676,14 @@ def main():
                 ## Consider adding nTrials here.
                 runTimeV = np.zeros([1])
                 tIdx = 0
+                if(curOS == 'linux'):
+                    taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
+                else:
+                    taskset = ""
                 cmd =  (
-                    "time cuffnorm --num-threads {} --output-dir {} -L {} "
+                    "time {} cuffnorm --num-threads {} --output-dir {} -L {} "
                       " {} {} {}"
-                      "".format(nThread, outDir, "treat,wt",  gtf, 
+                      "".format(nThread, taskset, outDir, "treat,wt",  gtf, 
                                 ",".join(treatCxbL), ",".join(wtCxbL)))
                 #print(cmd)
                 output = "{}\n".format(cmd)
@@ -694,10 +739,14 @@ def main():
                 ## Consider adding nTrials here.
                 runTimeV = np.zeros([1])
                 tIdx = 0
+                if(curOS == 'linux'):
+                    taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
+                else:
+                    taskset = ""
                 cmd =  (
-                    "time cuffdiff --num-threads {} --output-dir {} -L {} "
+                    "time {} cuffdiff --num-threads {} --output-dir {} -L {} "
                       " {} {} {}"
-                      "".format(nThread, outDir, "treat,wt",  gtf, 
+                      "".format(taskset, nThread, outDir, "treat,wt",  gtf, 
                                 ",".join(treatCxbL), ",".join(wtCxbL)))
                 #print(cmd)
                 output = "{}\n".format(cmd)
@@ -739,11 +788,15 @@ def main():
             runTimeV = np.zeros([nTrials])
             for tIdx in range(nTrials):   ### change to nTrials
             ## Consider adding nTrials here.
+                if(curOS == 'linux'):
+                    taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
+                else:
+                    taskset = ""
                 cmd =  (
                     "export OMP_NUM_THREADS={};"
                     "export LD_LIBRARY_PATH={}/src/kelvin/:$LD_LIBRARY_PATH;"
-                    "time src/kelvin/kelvin src/kelvin/kelvin.conf --PedigreeFile src/kelvin/single.post > {}/kelvin.out.{}  2>&1"
-                   "".format(nThread, curDir, outDir,tIdx))
+                    "time {} src/kelvin/kelvin src/kelvin/kelvin.conf --PedigreeFile src/kelvin/single.post > {}/kelvin.out.{}  2>&1"
+                   "".format(nThread, curDir, taskset, outDir,tIdx))
                 output = "{}\n".format(cmd)
                 output = output + subprocess.getoutput(cmd)
                 runTime = parse_run_time(output,workPath) # Run time

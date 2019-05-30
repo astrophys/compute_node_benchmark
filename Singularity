@@ -11,7 +11,7 @@ Include: yum
 #
 # Build : 
 #   1. rm test.simg
-#      sudo SINGULARITYENV_CODEPATH=/some/path/to/the/benchmarking_dir; singularity build test.simg Singularity
+#      sudo singularity build test.simg Singularity
 #      sudo chown user:group test.simg
 # Run (all tests) : 
 #   0. Turn off multithreading

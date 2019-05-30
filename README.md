@@ -13,7 +13,7 @@ This Singularity recipe file should build everything you need within a CentOS 6.
 
 ## Installation:
 #### Dependencies:
-1. Singularity (tested with Singularity 2.5.1)
+1. [Singularity](https://www.sylabs.io/guides/2.5/user-guide/index.html) (tested with Singularity 2.5.1)
 2. A `/tmp` with about 20GB of free space.  
    This is used as a bind point for the Singularity image. 
    Most Linux machines should have this. This is used to place data and analysis output. 
@@ -21,10 +21,20 @@ This Singularity recipe file should build everything you need within a CentOS 6.
 
 #### Build / Run:
 Run : 
-1. `$ sudo singularity build test.simg Singularity`
-2. `$ sudo chown user:group test.simg`
-3. `$ singularity run --nv -H /home/user test.simg`
-4.  After inspecting the output files, `driver.log` (see `/tmp/benchmarking_out`) and stdout (from running the container), consider deleting `/tmp/benchmarking_out` to clean up your local disk.  
+1.  Change the paths within the `%files` section of the `Singularity` recipe file to 
+    the actual location of where the code lives.
+    This is necessary because it is impossible to pass environmental variables to this section of the singularity recipe, which leads to this suboptimal solution:
+    
+    E.g.
+    
+    Change `/gpfs0/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/src` -> 
+    `/your/unique/path/to/compute_node_benchmark/src`
+
+    
+2. `$ sudo singularity build test.simg Singularity`
+3. `$ sudo chown user:group test.simg`
+4. `$ singularity run --nv -H /home/user test.simg`
+5.  After inspecting the output files, `driver.log` (see `/tmp/benchmarking_out`) and stdout (from running the container), consider deleting `/tmp/benchmarking_out` to clean up your local disk.  
     `driver.log` contains the `stdout` from all the tests, but not `stdout` from running the container. 
     The run time values from the various programs will be printed to `stdout` when running step 3.
 

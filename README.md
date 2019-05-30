@@ -1,7 +1,7 @@
 # Compute Node Benchmarking Tests
 #### Author : Ali Snedden
 #### License: MIT (unless noted otherwise, i.e. stream.c)
-## Purpose
+## Purpose:
 We are seeking "Requests For Proposals" from various vendors of high performanch computing systems.
 In order to make a selection from the vendors, we are providing small benchmarking test suite to be run on a typical compute node.
 The tests are focused on utilities that commonly run on our compute current cluster. 
@@ -11,15 +11,15 @@ The goal is to run each program multiple times, get a mean and standard deviatio
 This Singularity recipe file should build everything you need within a CentOS 6.10 environment. 
 
 
-## Installation
-#### Dependencies
+## Installation:
+#### Dependencies:
 1. Singularity (tested with Singularity 2.5.1)
 2. A `/tmp` with about 20GB of free space.  
    This is used as a bind point for the Singularity image. 
    Most Linux machines should have this. This is used to place data and analysis output. 
 3. A machine that you have root permission on. 
 
-#### Build / Run
+#### Build / Run:
 Run : 
 1. `$ sudo singularity build test.simg Singularity`
 2. `$ sudo chown user:group test.simg`
@@ -36,7 +36,7 @@ Please return to us :
 1. `driver.log`
 2. The output from `stdout` of running the container (step 3).
 
-#### Devs only 
+#### Devs only:
 1. If you want to unit test particular parts of the Singularity container, you can do this with something like :
    `$ export SINGULARITYENV_UNIT_TEST=cuffmerge`
    `$ export SINGULARITYENV_PREV_OUTPUT=/tmp/prev_benchmarking_out`
@@ -46,7 +46,7 @@ Note:
 Typically one would copy benchmarking_out from a previous run to /tmp/prev_benchmarking_out and then SINGULARITYENV_PREV_OUTPUT=/tmp/prev_benchmarking_out
 
 
-## What this code does
+## What this code does:
 1. Creates some matrix data (see `matrix_generator.py`)
 2. Runs matrix multiplication tests with cache optimized code (see `matrix_multiply_omp_cache_optimized.c`). Tries various number of threads.
 3. Runs matrix multiplication tests with non-cache optimized code (see `matrix_multiply_omp.c`)
@@ -63,8 +63,8 @@ Typically one would copy benchmarking_out from a previous run to /tmp/prev_bench
 14. Runs `Stream` to test memory bandwidth
 
 
-## Notes
-#### Development process
+## Notes:
+#### Development process:
 This repository was extensively developed on OSX 10.13.6 using a python-3.6 virtual environment.
 The `driver.py` (and other Python code that I developed) was run and tested primarily on this platform.
 This saved time due how long it takes for the Singularity recipe to build.
@@ -76,13 +76,13 @@ The consequence of this development process is that there are some ugly portions
 Downloading directly is slow, which is why I prefer the direct copy.
 3. There are likely unforseen bugs due programs working on one platform (i.e. CentOS container or OSX).
 
-#### Intended Machine to Test
+#### Intended Machine to Test:
 This is intended to test machine with : 
 1. `x86_64` architecture, either AMD or Intel CPUs
 2. Up to 20 cores are tested. More cores are acceptable, they just aren't tested in this code
 3. These tests are not indended to test GPUs, FPGAs or the filesystem.
 
-#### References
+#### References:
 Below are references for the code that we are testing. Most of this code (other than Stream and Kelvin) are downloaded from the internet at build time.
 1. [Stream](http://www.cs.virginia.edu/stream/ref.html#why). See published [paper](https://www.researchgate.net/publication/51992086_Memory_bandwidth_and_machine_balance_in_high_performance_computers)
 2. [Bowtie2 / Tophat2](https://ccb.jhu.edu/software/tophat/manual.shtml). See published [Paper](https://genomebiology.biomedcentral.com/articles/10.1186/gb-2013-14-4-r36)

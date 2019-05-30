@@ -22,8 +22,8 @@ Include: yum
 #   
 #   1. E.g. to test cuffmerge option to driver.py :
 #            export SINGULARITYENV_UNIT_TEST=cuffmerge\
-#            export SINGULARITYENV_PREV_OUTPUT=/tmp/path/to/toplevel/dir/with/data/cuffmerge/depends/on\
-#            singularity run --nv -H /home/group/user test.simg   ## Runs prebuilt tests
+#            export SINGULARITYENV_PREV_OUTPUT=/tmp/prev_benchmarking_out/\
+#            singularity run --nv -H /home/group/user test.simg   
 #      --> Typically one would copy benchmarking_out from a previous run to 
 #          /tmp/benchmarking_out and then 
 #      --> Set SINGULARITYENV_PREV_OUTPUT=/tmp/benchmarking_out
@@ -229,6 +229,8 @@ Put Help here
 
     ## Unit Tests ##
     if [[ ! -z "${UNIT_TEST}" ]]; then
+        cd /opt/code/benchmarking
+        echo "Running Unit Test : ${UNIT_TEST}"
         ## For most of these unit tests, previous output must have been generated
         ## so we'll dump the current output to the same dir as PREV_OUTPUT
         if [[ -z "${PREV_OUTPUT}" ]]; then

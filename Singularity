@@ -92,6 +92,7 @@ Put Help here
     # Kelvin dependencies
     yum install -y gsl.x86_64
     yum install -y gsl-devel.x86_64
+    yum install -y bc.x86_64
     
 
     mkdir -p /opt/python3.4/lib/python3.4/site-packages

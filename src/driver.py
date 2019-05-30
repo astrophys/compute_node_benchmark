@@ -760,7 +760,12 @@ def main():
 
 
 
-    ## This will only run on Linux, not OSX
+    # Note : 
+    #   1. This will only run on Linux, not OSX
+    #   2. Per John, it is near pointless to run multiple threads here.
+    #      Just run it via his run_kelvin.sh, and leave my machinery out of it
+    #   3. His script computes only the mean, but I'll shoe horn it into my
+    #      reporting scheme
     if(options == 'all' or options == 'kelvin'):
         print("Runnning Kelving...")
         print("--------------------------------------------------------")
@@ -776,33 +781,25 @@ def main():
         curDir = os.path.dirname(os.path.realpath(__file__))
         if(not os.path.isdir(outDirPref)):
             os.mkdir(outDirPref)
+        nThread = 1
+        runTimeV = np.zeros([1])
 
         ## Loop
-        for nThread in ompNumThreadsL:
-            outDir = "{}/{}".format(outDirPref,nThread)
-            if(not os.path.isdir(outDir)):
-                os.mkdir(outDir)
+        outDir = "{}".format(outDirPref)
+        if(not os.path.isdir(outDir)):
+            os.mkdir(outDir)
 
-            runTimeV = np.zeros([nTrials])
-            for tIdx in range(nTrials):   ### change to nTrials
-            ## Consider adding nTrials here.
-                if(curOS == 'linux'):
-                    taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
-                else:
-                    taskset = ""
-                cmd =  (
-                    "export OMP_NUM_THREADS={};"
-                    "export LD_LIBRARY_PATH={}/src/kelvin/:$LD_LIBRARY_PATH;"
-                    "time {} src/kelvin/kelvin src/kelvin/kelvin.conf > {}/kelvin.out.{}"
-                    #"time {} src/kelvin/kelvin src/kelvin/kelvin.conf --PedigreeFile src/kelvin/single.post > {}/kelvin.out.{}  2>&1"
-                   "".format(nThread, curDir, taskset, outDir,tIdx))
-                output = "{}\n".format(cmd)
-                output = output + subprocess.getoutput(cmd)
-                runTime = parse_run_time(output,workPath) # Run time
-                runTimeV[tIdx]= runTime
-            print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format("Short", nThread,
-                  np.mean(runTimeV), np.std(runTimeV)))
-            print("--------------------------------------------------------")
+        cmd =  ("export LD_LIBRARY_PATH={}/kelvin/:$LD_LIBRARY_PATH;"
+                "export PATH={}/kelvin/:$PATH;"
+                "bash {}/kelvin/run_kelvin.sh {} {}/kelvin" # arg1 =outputdir, arg2=/path/to/kelvin.conf
+                "".format(curDir, curDir, curDir, outDir, curDir))
+        output = "{}\n".format(cmd)
+        output = output + subprocess.getoutput(cmd)
+        runTime = parse_run_time(output,workPath) # Run time
+        runTimeV[0]= runTime
+        print(" {:<10} | {:<12} | {:<15.4f} | {:<15.4f}".format("Short", nThread,
+              np.mean(runTimeV), np.std(runTimeV)))
+        print("--------------------------------------------------------")
 
 
 

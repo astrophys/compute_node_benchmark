@@ -76,6 +76,10 @@ Put Help here
     yum install -y gawk.x86_64
     yum install -y lzip.x86_64
     yum install -y xz-devel.x86_64
+
+    # Kelvin dependencies
+    yum install gsl.x86_64
+    yum install gsl-devel.x86_64
     
 
     mkdir -p /opt/python3.4/lib/python3.4/site-packages
@@ -242,8 +246,26 @@ Put Help here
 
     ### Run stream multiple times ###
     echo "Running STREAM_ARRAY_SIZE = 10M" 
+    echo "Run 1"
+    bash src/stream/run_stream.sh src/stream/stream.10M
+    echo "Run 2"
+    bash src/stream/run_stream.sh src/stream/stream.10M
+    echo "Run 3"
+    bash src/stream/run_stream.sh src/stream/stream.10M
+    echo "Run 4"
+    bash src/stream/run_stream.sh src/stream/stream.10M
+    echo "Run 5"
     bash src/stream/run_stream.sh src/stream/stream.10M
     echo "Running STREAM_ARRAY_SIZE = 100M" 
+    echo "Run 1"
+    bash src/stream/run_stream.sh src/stream/stream.100M
+    echo "Run 2"
+    bash src/stream/run_stream.sh src/stream/stream.100M
+    echo "Run 3"
+    bash src/stream/run_stream.sh src/stream/stream.100M
+    echo "Run 4"
+    bash src/stream/run_stream.sh src/stream/stream.100M
+    echo "Run 5"
     bash src/stream/run_stream.sh src/stream/stream.100M
 
     

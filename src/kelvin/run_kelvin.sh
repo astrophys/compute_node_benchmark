@@ -1,4 +1,7 @@
 #!/bin/sh
+## To run : bash run_kelvin.sh /path/to/outdir
+OUTDIR=$1
+INDIR=$2
 
 if [ "$LD_LIBRARY_PATH" ] ; then
     export LD_LIBRARY_PATH=./:$LD_LIBRARY_PATH
@@ -7,9 +10,12 @@ else
 fi
 
 CORES=`fgrep -c processor /proc/cpuinfo`
+echo "CORES = $CORES"
+echo "OUTDIR = $OUTDIR"
+echo "INDIR  = $INDIR"
 for N in `seq 1 $CORES` ; do 
-    ./kelvin kelvin.conf --PedigreeFile single.post > kelvin.out.$N 2>&1 &
-    #./kelvin kelvin.conf > kelvin.out.$N 2>&1 &
+    kelvin ${INDIR}/kelvin.conf --PedigreeFile ${INDIR}/single.post > ${OUTDIR}/kelvin.out.$N 2>&1 &
+    #./kelvin kelvin.conf > ${OUTDIR}/kelvin.out.$N 2>&1 &
 done
 wait
 
@@ -17,7 +23,7 @@ HOURS=0
 MINS=0
 SECS=0
 
-for T in `fgrep 'Finished run' kelvin.out.* | cut -d' ' -f3 | tr -d '@,'`  ; do
+for T in `fgrep 'Finished run' ${OUTDIR}/kelvin.out.* | cut -d' ' -f3 | tr -d '@,'`  ; do
     set -- `echo $T | tr 'hms' '   '`
     echo  "runtime string is $T, parses to $*"
     if [ $# -eq 3 ] ; then

@@ -1,5 +1,4 @@
 Did:
-1. Added taskset calls to cmd in driver.py
 
 To Do:
 2. Install modern gcc like 7.0 or 8.0
@@ -40,3 +39,5 @@ To Do:
 35. Add stringtie and ballgown (if I have time).
 36. Fix simulate_fastq to not use seeded random numbers.
 37. Create larger dataset for hisat.
+38. change single.post -> clean.post 
+39. Add core binding to stream

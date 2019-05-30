@@ -136,7 +136,8 @@ def get_core_ids(NumThreads=None):
     ## If asking for more threads then cores, just max to number of cores
     if(len(coreL) < NumThreads):
         coreId2returnL = coreL
-        return(coreId2returnL)
+        string=",".join(str(i) for i in coreId2returnL)
+        return(string)
     else:
         coreId2returnL = np.arange(min(coreL), NumThreads)
 
@@ -164,5 +165,5 @@ def get_core_ids(NumThreads=None):
         exit_with_error("ERROR!!! len(coreId2returnL) {} / nCorePerSocket {}"
                         " + 1 != len(retSocketL) {}\n".format(len(coreId2returnL),
                         nCorePerSocket, len(retSocketL)))
-    
-    return(coreId2returnL)
+    string=",".join(str(i) for i in coreId2returnL)
+    return(string)

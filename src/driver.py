@@ -137,7 +137,7 @@ def main():
         cmd = "grep -P 'processor[\t ]' /proc/cpuinfo | cut -d: -f2 | tr -d ' '"
         coreIDL = subprocess.getoutput(cmd)
         coreIDL = [int(idx) for idx in coreIDL.split()]
-        ompCoreIdD = dict() # List of list cores to use associated with ompNumThreadsL
+        ompCoresIdD = dict() # List of list cores to use associated with ompNumThreadsL
         for nThread in ompNumThreadsL:
             ompCoresIdD[nThread] = get_core_ids(NumThreads = nThread)
 
@@ -178,8 +178,8 @@ def main():
                     taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
                 else:
                     taskset = ""
-                cmd =  "{} python3 src/matrix/matrix_generator.py {} 10000 "
-                             "10000 {} {}".format(taskset, size, size, outDir)
+                cmd =  ("{} python3 src/matrix/matrix_generator.py {} 10000 "
+                             "10000 {} {}".format(taskset, size, size, outDir))
                 output = "{}\n".format(cmd)
                 output = output + subprocess.getoutput(cmd)
                 runTime = parse_run_time(output,workPath) # Run time
@@ -793,7 +793,8 @@ def main():
                 cmd =  (
                     "export OMP_NUM_THREADS={};"
                     "export LD_LIBRARY_PATH={}/src/kelvin/:$LD_LIBRARY_PATH;"
-                    "time {} src/kelvin/kelvin src/kelvin/kelvin.conf --PedigreeFile src/kelvin/single.post > {}/kelvin.out.{}  2>&1"
+                    "time {} src/kelvin/kelvin src/kelvin/kelvin.conf > {}/kelvin.out.{}"
+                    #"time {} src/kelvin/kelvin src/kelvin/kelvin.conf --PedigreeFile src/kelvin/single.post > {}/kelvin.out.{}  2>&1"
                    "".format(nThread, curDir, taskset, outDir,tIdx))
                 output = "{}\n".format(cmd)
                 output = output + subprocess.getoutput(cmd)

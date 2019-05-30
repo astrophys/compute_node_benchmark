@@ -15,7 +15,6 @@ output
 ref
 submit*.slrm
 slurm*
-kelvin
 node02
 node04
 single.post

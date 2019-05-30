@@ -17,6 +17,7 @@ submit*.slrm
 slurm*
 node02
 node04
+nodeTest
 single.post
 stream.10M
 stream.100M

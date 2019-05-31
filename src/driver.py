@@ -606,7 +606,7 @@ def main():
         for size in rnaSeqSizeL:
             bamFileL  = glob.glob("{}/{}/*/accepted_hits.bam".format(inBamDirPref,size))
             outDir = "{}/{}".format(outDirPref,size)
-            gtf="{}/{}/transcripts.gtf".format(inGtfDirPref,size)
+            gtf="{}/{}/merged.gtf".format(inGtfDirPref,size)
             if(not os.path.isdir(outDir)):
                 os.mkdir(outDir)
 
@@ -671,7 +671,7 @@ def main():
                                     "{} are" "True".format(treatIdxL[idx], wtIdxL[idx]))
             
             outDir = "{}/{}".format(outDirPref,size)
-            gtf="{}/{}/transcripts.gtf".format(inGtfDirPref,size)
+            gtf="{}/{}/merged.gtf".format(inGtfDirPref,size)
             if(not os.path.isdir(outDir)):
                 os.mkdir(outDir)
 
@@ -734,7 +734,7 @@ def main():
                                     "{} are" "True".format(treatIdxL[idx], wtIdxL[idx]))
             
             outDir = "{}/{}".format(outDirPref,size)
-            gtf="{}/{}/transcripts.gtf".format(inGtfDirPref,size)
+            gtf="{}/{}/merged.gtf".format(inGtfDirPref,size)
             if(not os.path.isdir(outDir)):
                 os.mkdir(outDir)
 

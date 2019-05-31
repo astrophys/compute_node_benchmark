@@ -1,25 +1,4 @@
 Did:
-0. Attempted fix of cuffmerge. The solution is to cd to /tmp and then 
-   cd back to the directory that we came from. This is b/c cufflinks
-   tries to write tmp files in the current working directory and in a 
-   Singularity container, that current working directory is read only.
-   --> I think this works
-1. Changed run_kelvin.sh to run the longer version of kelvin
-
-2.  Checked output from unit tests and compared to computed mean / stdev.
-       Spot checked mean (from stdout), stdev (from stdout), taskset (from driver.log)
-    g) cufflinks_assemble
-       CMD EX:
-             grep "taskset -c 0,1,2,3,4,5,6,7,8,9 \|real" /tmp/nodeTest/driver.log | 
-             grep -A 1 100000  | grep real | awk '{print $2}' | tr '\n' ','
-
-       CHECKED :
-            size=20000, nthreads=[5,10], nsamp=6
-            size=100000, nthreads=[5,10], nsamp=6
-     ------
-     m) kelvin
-        CHECKED:
-            size=single.post:short, average=
 
 To Do:
 1. Install modern gcc like 7.0 or 8.0

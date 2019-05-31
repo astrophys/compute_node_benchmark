@@ -1,11 +1,4 @@
 Did:
-2.  Checked output from unit tests and compared to computed mean / stdev.
-    Spot checked mean (from stdout), stdev (from stdout), taskset (from driver.log)
-    h) cuffmerge
-           CHECKED :
-                size=20000, nthreads=[1,2,5,10,20], nTrial=1
-                size=100000, nthreads=[1,2,5,10,20], nTrial=1
-
 
 To Do:
 1. Install modern gcc like 7.0 or 8.0
@@ -37,9 +30,5 @@ To Do:
 17. Add stringtie and ballgown (if I have time).
 18. Fix simulate_fastq to not use seeded random numbers.
 19. Create larger dataset for hisat.
-20. change single.post -> clean.post 
-21. remove --nv from run command
-22. Add notes about unit tests to Readme
+20. remove --nv from run command
 
-24. The cuffquant 
-    --> ALmost fixed, but need to ensure it works with merged.gtf

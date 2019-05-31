@@ -15,7 +15,7 @@ echo "OUTDIR = $OUTDIR"
 echo "INDIR  = $INDIR"
 for N in `seq 1 $CORES` ; do 
     #kelvin ${INDIR}/kelvin.conf --PedigreeFile ${INDIR}/single.post > ${OUTDIR}/kelvin.out.$N 2>&1 &
-    ./kelvin ${INDIR}/kelvin.conf > ${OUTDIR}/kelvin.out.$N 2>&1 &
+    kelvin ${INDIR}/kelvin.conf > ${OUTDIR}/kelvin.out.$N 2>&1 &
 done
 wait
 

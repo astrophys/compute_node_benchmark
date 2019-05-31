@@ -1,5 +1,6 @@
 # Author : Ali Snedden
 # Date   : 5/15/19
+# License: MIT
 # Purpose:
 #
 # Notes :

@@ -1,4 +1,15 @@
 #!/bin/bash
+# Author : Ali Snedden
+# Date   : 5/31/19
+# License: MIT
+# Purpose: 
+#
+# Notes :
+#
+# Questions:
+#
+# References :  
+#
 ## Get section of genome of interest. It contains a fragment of the trascript 
 ## spaced with introns
 READ_LEN=50

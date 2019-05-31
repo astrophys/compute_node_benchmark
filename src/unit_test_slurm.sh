@@ -1,10 +1,9 @@
 #!/bin/bash
-#SBATCH --mail-type=FAIL,REQUEUE,TIME_LIMIT_90
-#SBATCH --mail-user=Ali.Snedden@nationwidechildrens.org
 #SBATCH --cpus-per-task=20
 #SBATCH --output=%x_%j.out
 # Author : Ali Snedden
 # Date : 5/30/19
+# License: MIT
 # Purpose : 
 #   This batch script helps you unit test the singularity image using
 #   the SLURM scheduler. This makes it possible to actually test the 
@@ -15,7 +14,7 @@
 #
 #
 # Comprehensibly run :
-#       for unit in `echo build_mat_mult_data mat_mult_cache_opt mat_mult_non_cache_opt build_rnaseq_data align_rnaseq_tophat align_rnaseq_hisat cufflinks_assemble cuffmerge cuffcompare cuffquant cuffnorm cuffdiff kelvin stream`; do sbatch --job-name=${unit} unit_test_slurm.sh $unit; done
+#       for unit in `echo build_mat_mult_data mat_mult_cache_opt mat_mult_non_cache_opt build_rnaseq_data align_rnaseq_tophat align_rnaseq_hisat cufflinks_assemble cuffmerge cuffcompare cuffquant cuffnorm cuffdiff kelvin stream`; do sbatch --mail-user=your@email.com --mail-type=FAIL  --job-name=${unit} unit_test_slurm.sh $unit; done
 UNIT_TEST=$1
 
 

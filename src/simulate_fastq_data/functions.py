@@ -1,3 +1,14 @@
+# Author : Ali Snedden
+# Date   : 5/31/19
+# License: MIT
+# Purpose: 
+#
+# Notes :
+#
+# Questions:
+#
+# References :  
+#
 import sys
 import re
 import datetime

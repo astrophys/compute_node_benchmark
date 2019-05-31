@@ -1,3 +1,6 @@
+# Author : Ali Snedden
+# Date   : May, 2019
+# License: MIT
 import random
 import numpy as np
 import time

@@ -1,6 +1,7 @@
 /************************************************************
 Author : Ali Snedden
 Date   : 8/21/18
+License: MIT
 Purpose:
     This is a program that multiplies two matrices.
 Debug  : 

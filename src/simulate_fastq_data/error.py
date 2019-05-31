@@ -1,3 +1,14 @@
+# Author : Ali Snedden
+# Date   : 5/31/19
+# License: MIT
+# Purpose: 
+#
+# Notes :
+#
+# Questions:
+#
+# References :  
+#
 import sys
 def exit_with_error(string):
     """

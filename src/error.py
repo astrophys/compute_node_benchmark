@@ -1,3 +1,6 @@
+# Author : Ali Snedden
+# Date   : 
+# License: MIT
 import sys
 def exit_with_error(string):
     """

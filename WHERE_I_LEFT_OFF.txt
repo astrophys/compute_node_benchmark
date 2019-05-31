@@ -34,3 +34,13 @@ To Do:
 21. remove --nv from run command
 22. Add notes about unit tests to Readme
 
+
+23. Resolve cuffmerge error : see http://seqanswers.com/forums/showthread.php?t=27131
+    --> Should be solved by doing a os.chdir('cd /tmp') in driver.py
+    --> Rerun other parts of pipeline to ensure that it works.
+    --> see node39 for output
+24. The cuffquant runs (see node03) are messed up. The wrong mean time
+    is reported - bug fixed?
+25. cuffnorm is messed up - bug fixed?
+26. kelving broke b/c lacks bc
+

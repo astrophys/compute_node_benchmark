@@ -609,11 +609,12 @@ def main():
             for nThread in ompNumThreadsL:
                 ## Consider adding nTrials here.
                 runTimeV = np.zeros([len(bamFileL)])
+                tIdx = 0
+
                 for bamFile in bamFileL:
                     outDirSamp = "{}/{}".format(outDir,bamFile.split("/")[-2].split(".")[0])
                     if(not os.path.isdir(outDirSamp)):
                         os.mkdir(outDirSamp)
-                    tIdx = 0
                     if(curOS == 'linux'):
                         taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
                     else:
@@ -681,7 +682,7 @@ def main():
                 cmd =  (
                     "time {} cuffnorm --num-threads {} --output-dir {} -L {} "
                       " {} {} {}"
-                      "".format(nThread, taskset, outDir, "treat,wt",  gtf, 
+                      "".format(taskset, nThread, outDir, "treat,wt",  gtf, 
                                 ",".join(treatCxbL), ",".join(wtCxbL)))
                 #print(cmd)
                 output = "{}\n".format(cmd)

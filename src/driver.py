@@ -495,6 +495,8 @@ def main():
         inDirPref  = os.path.abspath("{}/output/rnaseq/cufflinks".format(workPath))   ## prefix
         gtf="{}/Homo_sapiens.GRCh38.83.gtf".format(refPath)
         genome="{}/Homo_sapiens.GRCh38.dna.primary_assembly.fa".format(refPath)
+        curDir = os.path.dirname(os.path.realpath(__file__))
+        
         ## Loop
         for size in rnaSeqSizeL:
             sampFileL   = glob.glob("{}/{}/*/transcripts.gtf".format(inDirPref,size))
@@ -526,9 +528,11 @@ def main():
                     # python2="/usr/bin/python"
                     taskset = "taskset -c {} ".format(ompCoresIdD[nThread])
                     cmd =  (
+                        "pwd; cd /tmp/; alias python='/usr/bin/python';"
                         "time {} cuffmerge --num-threads {} -o {} "
-                        "--ref-gtf {} --ref-sequence {} {}"
-                        "".format(taskset, nThread, outDir, gtf, genome, assemblyPath))
+                        "--ref-gtf {} --ref-sequence {} {}; cd {}/../"
+                        "".format(taskset, nThread, outDir, gtf, genome,
+                        assemblyPath, curDir))
                 else:
                     exit_with_error("ERROR!!! Unsupported OS.")
                 output = "{}\n".format(cmd)

@@ -42,28 +42,28 @@ Run :
 If you have difficulty with the downloads timing out or other network issues and the build (see above) is failing as a result, you can directly download the data into the cloned repo and then build the container.
 E.g.
 
-1. '$ cd /path/to/compute_node_benchmark'
-2. '$ mkdir /ref'
-3. '$ cd /opt/ref'
-4. '$ wget ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38.tar.gz '
-5. '$ tar xvzf grch38.tar.gz'
-6. '$ mv grch38 HisatIndex'
-7. '$ rm grch38.tar.gz'
-8. '$ wget ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_genbank/Eukaryotes/vertebrates_mammals/Homo_sapiens/GRCh38/seqs_for_alignment_pipelines/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz'
-9. '$ tar xvzf GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz'
-10.'$  mkdir Bowtie2Index'
-11.'$  mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.1.bt2  Bowtie2Index/Homo_sapiens.GRC38.1.bt2'
-12.'$  mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.2.bt2  Bowtie2Index/Homo_sapiens.GRC38.2.bt2'
-13.'$  mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.3.bt2  Bowtie2Index/Homo_sapiens.GRC38.3.bt2'
-14.'$  mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.4.bt2  Bowtie2Index/Homo_sapiens.GRC38.4.bt2'
-15.'$  mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.rev.1.bt2  Bowtie2Index/Homo_sapiens.GRC38.rev.1.bt2'
-16.'$  mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.rev.2.bt2  Bowtie2Index/Homo_sapiens.GRC38.rev.2.bt2'
-17.'$  rm GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz'
-18.'$  wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-83/gtf/homo_sapiens/Homo_sapiens.GRCh38.83.gtf.gz'
-19.'$  gunzip Homo_sapiens.GRCh38.83.gtf.gz'
-20.'$  wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-83/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz'
-21.'$  gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz'
-22.'$  cd ../'
+1. `$ cd /path/to/compute_node_benchmark`
+2. `$ mkdir /ref`
+3. `$ cd /opt/ref`
+4. `$ wget ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38.tar.gz `
+5. `$ tar xvzf grch38.tar.gz`
+6. `$ mv grch38 HisatIndex`
+7. `$ rm grch38.tar.gz`
+8. `$ wget ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_genbank/Eukaryotes/vertebrates_mammals/Homo_sapiens/GRCh38/seqs_for_alignment_pipelines/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz`
+9. `$ tar xvzf GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz`
+10.`$  mkdir Bowtie2Index`
+11.`$  mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.1.bt2  Bowtie2Index/Homo_sapiens.GRC38.1.bt2`
+12.`$  mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.2.bt2  Bowtie2Index/Homo_sapiens.GRC38.2.bt2`
+13.`$  mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.3.bt2  Bowtie2Index/Homo_sapiens.GRC38.3.bt2`
+14.`$  mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.4.bt2  Bowtie2Index/Homo_sapiens.GRC38.4.bt2`
+15.`$  mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.rev.1.bt2  Bowtie2Index/Homo_sapiens.GRC38.rev.1.bt2`
+16.`$  mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.rev.2.bt2  Bowtie2Index/Homo_sapiens.GRC38.rev.2.bt2`
+17.`$  rm GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz`
+18.`$  wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-83/gtf/homo_sapiens/Homo_sapiens.GRCh38.83.gtf.gz`
+19.`$  gunzip Homo_sapiens.GRCh38.83.gtf.gz`
+20.`$  wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-83/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz`
+21.`$  gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz`
+22.`$  cd ../`
 23. Follow the steps in the Build / Run section
 
 Warning:

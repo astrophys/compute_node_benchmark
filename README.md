@@ -37,6 +37,10 @@ Run :
 5.  After inspecting the output files, `driver.log` (see `/tmp/benchmarking_out`) and stdout (from running the container), consider deleting `/tmp/benchmarking_out` to clean up your local disk.  
     `driver.log` contains the `stdout` from all the tests, but not `stdout` from running the container. 
     The run time values from the various programs will be printed to `stdout` when running step 3.
+6. (If you are a vendor) Please return to us :
+    a) `driver.log`
+    b) The output from `stdout` of running the container (step 3).
+
 
 #### Build Difficulties :
 If you have difficulty with the downloads timing out or other network issues and the build (see above) is failing as a result, you can directly download the data into the cloned repo and then build the container.
@@ -66,13 +70,9 @@ E.g.
 22. `$  cd ../`
 23. Follow the steps in the Build / Run section
 
-Warning:
+#### Warning:
 1. When building the container it will be enormous (i.e. > 10GB). Beware!
 2. The output is also enormous ~10-20GB. Beware!
-
-Please return to us :
-1. `driver.log`
-2. The output from `stdout` of running the container (step 3).
 
 #### Devs only:
 1. If you want to unit test particular parts of the Singularity container, you can do this with something like :

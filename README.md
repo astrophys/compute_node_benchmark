@@ -120,7 +120,7 @@ Downloading directly is slow, which is why I prefer the direct copy.
 #### Intended Machine to Test:
 This is intended to test machine with : 
 1. `x86_64` architecture, either AMD or Intel CPUs
-2. Up to 20 cores are tested. More cores are acceptable, they just aren't tested in this code
+2. By default we test up to 20 cores. We also test the number of cores equivalent to : a NUMA node, a socket and all the nodes cores.
 3. These tests are not indended to test GPUs, FPGAs or the filesystem.
 
 #### References:

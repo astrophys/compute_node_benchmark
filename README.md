@@ -37,10 +37,10 @@ Run :
 4. `$ singularity run -H /home/user test.simg`
 5.  After inspecting the output files, `driver.log` (see `/tmp/benchmarking_out`) and stdout (from running the container), consider deleting `/tmp/benchmarking_out` to clean up your local disk.  
     `driver.log` contains the `stdout` from all the tests, but not `stdout` from running the container. 
-    The run time values from the various programs will be printed to `stdout` when running step 3.
+    The run time values from the various programs will be printed to `stdout` when running step 4.
 6. (If you are a vendor) Please return (via email) to us :
     * `driver.log`
-    * The output from `stdout` of running the container (step 3).
+    * The output from `stdout` of running the container (step 4).
 
 
 #### Build Difficulties :

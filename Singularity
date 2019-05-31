@@ -15,7 +15,7 @@ Include: yum
 #      sudo chown user:group test.simg
 # Run (all tests) : 
 #   0. Turn off multithreading
-#   1. singularity run --nv -H /home/group/user test.simg   ## Runs prebuilt tests
+#   1. singularity run -H /home/group/user test.simg   ## Runs prebuilt tests
 #
 # Run (unit_test) : 
 #   0. Turn off multithreading
@@ -23,7 +23,7 @@ Include: yum
 #   1. E.g. to test cuffmerge option to driver.py :
 #            export SINGULARITYENV_UNIT_TEST=cuffmerge\
 #            export SINGULARITYENV_PREV_OUTPUT=/tmp/prev_benchmarking_out/\
-#            singularity run --nv -H /home/group/user test.simg   
+#            singularity run -H /home/group/user test.simg   
 #      --> Typically one would copy benchmarking_out from a previous run to 
 #          /tmp/benchmarking_out and then 
 #      --> Set SINGULARITYENV_PREV_OUTPUT=/tmp/benchmarking_out

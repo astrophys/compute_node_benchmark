@@ -92,6 +92,6 @@ fi
 ## Unit Test
 export SINGULARITYENV_UNIT_TEST=${UNIT_TEST}
 export SINGULARITYENV_PREV_OUTPUT=${PREV_OUTPUT}
-singularity run --nv -H /home/gdhpcgroup/aps003 test.simg   ## Runs prebuilt tests
+singularity run -H /home/gdhpcgroup/aps003 test.simg   ## Runs prebuilt tests
 
 

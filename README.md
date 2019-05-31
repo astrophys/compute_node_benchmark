@@ -1,5 +1,6 @@
 # Compute Node Benchmarking Tests
 #### Author : Ali Snedden
+#### Contact: Ali.Snedden[at]nationwidechildrens.org
 #### License: MIT (unless noted otherwise, i.e. stream.c)
 ## Purpose:
 We are seeking "Requests For Proposals" from various vendors of high performanch computing systems.
@@ -37,9 +38,9 @@ Run :
 5.  After inspecting the output files, `driver.log` (see `/tmp/benchmarking_out`) and stdout (from running the container), consider deleting `/tmp/benchmarking_out` to clean up your local disk.  
     `driver.log` contains the `stdout` from all the tests, but not `stdout` from running the container. 
     The run time values from the various programs will be printed to `stdout` when running step 3.
-6. (If you are a vendor) Please return to us :
-    a) `driver.log`
-    b) The output from `stdout` of running the container (step 3).
+6. (If you are a vendor) Please return (via email) to us :
+    * `driver.log`
+    * The output from `stdout` of running the container (step 3).
 
 
 #### Build Difficulties :

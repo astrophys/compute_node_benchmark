@@ -131,6 +131,7 @@ Below are references for the code that we are testing. Most of this code (other 
 3. [HiSat2](https://ccb.jhu.edu/software/hisat2/index.shtml). See published [paper](https://www.nature.com/articles/nmeth.3317)
 4. [Cufflinks](http://cole-trapnell-lab.github.io/cufflinks/cuffcompare/index.html)
 5. [Kelvin](https://www.karger.com/Article/Abstract/330634)
+    * [ptmalloc](http://www.malloc.de/en/) (distributed with Kelvin)
 
 
 

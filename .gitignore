@@ -2,7 +2,6 @@
 *.simg
 .*.swp
 *.o
-data
 matrix_multiply
 driver.log
 __pycache__

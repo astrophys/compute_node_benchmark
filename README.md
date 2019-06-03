@@ -1,6 +1,6 @@
 # Compute Node Benchmarking Tests
 #### Author : Ali Snedden
-#### Contact: Ali.Snedden[at]nationwidechildrens.org
+#### Contact: Ali . Snedden at nationwidechildrens . org (remove spaces, convert 'at')
 #### License: MIT (unless noted otherwise, i.e. stream.c)
 ## Purpose:
 We are seeking "Requests For Proposals" from various vendors of high performanch computing systems.

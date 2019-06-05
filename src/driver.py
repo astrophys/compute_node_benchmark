@@ -510,6 +510,7 @@ def main():
                 assemblyFile = open(assemblyPath, "w+")
                 for samp in sampFileL:
                     assemblyFile.write("{}\n".format(samp))
+                assemblyFile.close()
 
             for nThread in ompNumThreadsL:
                 ## Consider adding nTrials here.

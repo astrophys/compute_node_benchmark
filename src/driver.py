@@ -740,7 +740,9 @@ def main():
             if(not os.path.isdir(outDir)):
                 os.mkdir(outDir)
 
-            for nThread in ompNumThreadsL:
+            
+            # Cuffdiff is too time intensive to go over all threads
+            for nThread in [ompNumThreadsL[0]]:  # Cheap hack iter over only nthread=1.  
                 ## Consider adding nTrials here.
                 runTimeV = np.zeros([1])
                 tIdx = 0

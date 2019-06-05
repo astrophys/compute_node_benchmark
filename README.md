@@ -48,8 +48,8 @@ If you have difficulty with the downloads timing out or other network issues and
 E.g.
 
 1. `$ cd /path/to/compute_node_benchmark`
-2. `$ mkdir /ref`
-3. `$ cd /opt/ref`
+2. `$ mkdir ref`
+3. `$ cd ref`
 4. `$ wget ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38.tar.gz `
 5. `$ tar xvzf grch38.tar.gz`
 6. `$ mv grch38 HisatIndex`
@@ -69,7 +69,7 @@ E.g.
 20. `$  wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-83/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz`
 21. `$  gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz`
 22. `$  cd ../`
-23. Follow the steps in the Build / Run section
+23. Follow the steps in the Build / Run section starting with step 1.
 
 #### Warning:
 1. When building the container it will be enormous (i.e. > 10GB). Beware!

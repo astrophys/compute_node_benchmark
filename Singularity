@@ -111,6 +111,11 @@ Put Help here
     mv /tmp/README.md /opt/code/benchmarking
     mv /tmp/Singularity /opt/code/benchmarking
 
+    # on Dell architecture (not sure why) the /usr/bin/python3 symlink isn't created #
+    if [ ! -L "/usr/bin/python3" ]; then 
+        ln -s /usr/bin/python3.4 /usr/bin/python3
+    fi
+
     # If reference directory exists, use it
     if [ -d "/tmp/ref" ]; then 
         mv /tmp/ref /opt

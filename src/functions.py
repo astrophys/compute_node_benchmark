@@ -76,72 +76,112 @@ def get_core_ids(NumThreads=None):
         Given a number of threads, return core ids that minimize the number of NUMA
         nodes used and minimize the number of sockets used.
     NOTE: 
-        1. I'm making the assumption that the cores are listed sequentially 
+        1. Previously, I made the assumption that the cores are listed sequentially 
            are in the same socket / numa node. This all breaks down if 
-           something crazy like this occurs:
+           something crazy happens (like cores on alternating NUMA nodes).  I believe
+           that I have fixed for this.
+        2. It is ok that I don't sort coreId2returnL b/c taskset doesn't care
+           about the order.
         
-            coreId | NUMA Node | socket
-            ---------------------------
-            0      | 0         | 0
-            1      | 1         | 0
-            2      | 0         | 0
-            3      | 1         | 0
-            4      | 1         | 0
-            5      | 0         | 0
-            6      | 0         | 0
-
-          Instead of 
-
-            coreId | NUMA Node | socket
-            ---------------------------
-            0      | 0         | 0
-            1      | 0         | 0
-            2      | 0         | 0
-            3      | 0         | 0
-            4      | 1         | 0
-            5      | 1         | 0
-            6      | 1         | 0
     DEBUG:
         1. Added sanity checks at the end that seem to work
         2. Tested [1, 2, 5, 6, 7, 10, 12, 15, 20] and returns 
            correct cores as expected
+        3. Added output from lscpu that DELL provided, changed cmd appropriately
+           to emulate how lscpu returns values.
+
+           Added loop to handle cores being on alternating socket/numa
+           --> Tested interleave_off.txt, [1,2,10,20,25,40,50], returns as expected
+           --> Tested interleave_on.txt,  [1,2,10,20,25,40,50], returns as expected
+           --> Retested on Baker, but himem and gp nodes: [1,3,5,6,12,24,48,100],
+               returns as expected.
     FUTURE:
     """
-    cmd="grep -P 'physical id' /proc/cpuinfo | cut -d: -f2 | tr -d ' '"
+    # Create several lists where the elements of the lists correspond to the individual
+    # cores and their properties
+    #       E.g. socketL[1] corresponds the the socket core (with coreID = coreL[1])
+    #cmd="grep -P 'physical id' /proc/cpuinfo | cut -d: -f2 | tr -d ' '"
+    cmd="lscpu -e | grep -v CORE | awk '{print $3}'"
     socketL = subprocess.getoutput(cmd).split()
-    socketL = [int(socket) for socket in socketL]
-    cmd="grep -P 'processor' /proc/cpuinfo | cut -d: -f2 | tr -d ' '"
+    socketL = [int(socket) for socket in socketL]   # socket per list
+    #cmd="grep -P 'processor' /proc/cpuinfo | cut -d: -f2 | tr -d ' '"
+    cmd="lscpu -e | grep -v CORE | awk '{print $4}'"
     coreL = subprocess.getoutput(cmd).split()
     coreL = [int(core) for core in coreL]
-    cmd="lscpu | grep 'NUMA node[^(]' | awk '{print $2 \" \" $4}'"
-    numaL = subprocess.getoutput(cmd).split('\n')
-    cmd="lscpu | grep 'Core(s) per socket' | awk '{print $4}'"
+    #cmd="lscpu -e | grep 'NUMA node[^(]' | awk '{print $2 \" \" $4}'"
+    #numaL = subprocess.getoutput(cmd).split('\n')
+    cmd="lscpu -e | grep -v CORE | awk '{print $2}'"
+    numaL = subprocess.getoutput(cmd).split()
+    numaL = [int(numa) for numa in numaL]       
+
+    cmd="lscpu | grep 'Core(s) per socket' | awk '{{print $4}}'"
     nCorePerSocket = int(subprocess.getoutput(cmd))
+
+    cmd="lscpu -e | grep -v CORE | awk '{{print $2}}' | sort -n  | uniq -c | awk '{{print $1}}' | head -n 1"
+    nCorePerNuma = int(subprocess.getoutput(cmd).split()[0])
+
+    ####### BEGIN debugging DELL's lscpu ########
+    ## Create several lists where the elements of the lists correspond to the individual
+    ## cores and their properties
+    ##       E.g. socketL[1] corresponds the the socket core (with coreID = coreL[1])
+    ## Meant to be called when debugging from within src/
+    ##
+    ##
+    ##fin="interleave_off.txt"
+    #fin="interleave_on.txt"
+    #cmd="grep -v CORE ../config/dell/{} | awk '{{print $3}}'".format(fin)
+    #socketL = subprocess.getoutput(cmd).split()
+    #socketL = [int(socket) for socket in socketL]   # socket per list
+    ##cmd="grep -P 'processor' /proc/cpuinfo | cut -d: -f2 | tr -d ' '"
+    #cmd="grep -v CORE ../config/dell/{} | awk '{{print $4}}'".format(fin)
+    #coreL = subprocess.getoutput(cmd).split()
+    #coreL = [int(core) for core in coreL]
+    ##cmd="lscpu -e | grep 'NUMA node[^(]' | awk '{print $2 \" \" $4}'"
+    ##numaL = subprocess.getoutput(cmd).split('\n')
+    #cmd="grep -v CORE ../config/dell/{} | awk '{{print $2}}'".format(fin)
+    #numaL = subprocess.getoutput(cmd).split()
+    #numaL = [int(numa) for numa in numaL]       ### This changed!
+    #cmd="grep 'Core(s) per socket' ../config/dell/lscpu_{} | awk '{{print $4}}'".format(fin)
+    #nCorePerSocket = int(subprocess.getoutput(cmd))
+    #cmd="grep -v CORE ../config/dell/{} | awk '{{print $2}}' | sort -n  | uniq -c | awk '{{print $1}}' | head -n 1".format(fin)
+    #nCorePerNuma = int(subprocess.getoutput(cmd).split()[0])
+    ####### END debugging DELL's lscpu ########
 
     coreNumaD=dict()
     coreSockD=dict()
-    for node in numaL:
-        [node,coreRange] = node.split()
-        coreRange=coreRange.split('-')
-        nCorePerNuma = int(coreRange[1]) -  int(coreRange[0]) + 1 # Assuming same cores
+    ## Create dicts 
+    for idx in range(len(coreL)):
+        # Get core's NUMA node
+        coreId = coreL[idx]
+        coreNumaD[coreId] = numaL[idx]
+        # Get core's Socket
+        coreSockD[coreId] = socketL[idx]
 
-        for coreId in range(int(coreRange[0]), int(coreRange[1]) + 1):
-            # Get core's NUMA node
-            coreNumaD[coreId] = node
-
-            # Get core's Socket
-            for idx in range(len(coreL)):
-                if(coreId == coreL[idx]):
-                    coreSockD[coreId] = socketL[idx]
-
+    #import pdb; pdb.set_trace()
     ## If asking for more threads then cores, just max to number of cores
     if(len(coreL) < NumThreads):
         coreId2returnL = coreL
         string=",".join(str(i) for i in coreId2returnL)
         return(string)
     else:
-        coreId2returnL = np.arange(min(coreL), NumThreads)
+        n = 0              ## Number of cores found
+        numaNode = 0       ## Current NUMA node working on
+        socket   = 0
+        coreId2returnL =[] ## Cores found
+        while(n<NumThreads):
+            for idx in range(len(coreL)):
+                if(numaL[idx] == numaNode and socketL[idx] == socket):
+                    coreId2returnL.append(coreL[idx])
+                    n = n + 1
+                if(n == NumThreads):
+                    break
 
+            if(n >= nCorePerNuma*(numaNode + 1)):
+                numaNode = numaNode + 1
+            # Iterate socket as run out of space
+            if(n >= nCorePerSocket*(socket + 1)):
+                socket = socket + 1
+            
     # Error Check
     if(len(coreId2returnL) != NumThreads):
         exit_with_error("ERROR!!! coreId2returnL {} != NumThreads "
@@ -158,8 +198,8 @@ def get_core_ids(NumThreads=None):
             retSocketL.append(coreSockD[core])
     # Check for minimum number of NUMA nodes
     if(int(len(coreId2returnL) / (nCorePerNuma*1.001) + 1) != len(retNumaL)):
-        exit_with_error("ERROR!!! len(coreId2returnL) {} / nCorePerNuma {}"
-                        " + 1 != len(retNumL) {}\n".format(len(coreId2returnL),
+        exit_with_error("ERROR!!! len(coreId2returnL) ({}) / nCorePerNuma {}"
+                        " + 1 != len(retNumL) ({})\n".format(len(coreId2returnL),
                         nCorePerNuma, len(retNumaL)))
     # Check for minimum number of sockets
     if(int(len(coreId2returnL) / (nCorePerSocket*1.001) + 1) != len(retSocketL)):

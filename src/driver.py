@@ -109,6 +109,17 @@ def main():
 
     ## In Linux singularity container add cores per socket and total cores to ompNumThreadsL
     if(shutil.which('lscpu') != None):
+        # Record raw lscpu, lscpu -e and numactl --hardware
+        lscpuLog=open("{}/lscpu.log".format(workPath), "a")
+        cmd="lscpu"
+        lscpuLog.write("\n{}:\n{}\n".format(cmd,subprocess.getoutput(cmd)))
+        cmd="lscpu -e"
+        lscpuLog.write("\n{}:\n{}\n".format(cmd,subprocess.getoutput(cmd)))
+        cmd="numactl --hardware"
+        lscpuLog.write("\n{}:\n{}\n".format(cmd,subprocess.getoutput(cmd)))
+        lscpuLog.close()
+    
+        # other details
         cmd="lscpu | grep 'Core(s) per socket:' | awk '{print $4}'"
         coresPerSocket = int(subprocess.getoutput(cmd))
         cmd="lscpu  | grep '^CPU(s):' | awk '{print $2}'"

@@ -40,6 +40,7 @@ Run :
     The run time values from the various programs will be printed to `stdout` when running step 4.
 6. (If you are a vendor) Please return (via email) to us :
     * `driver.log`
+    * `lscpu.log`
     * The output from `stdout` of running the container (step 4).
 
 

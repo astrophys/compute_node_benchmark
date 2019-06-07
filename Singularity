@@ -72,6 +72,7 @@ Put Help here
     yum install -y time.x86_64
     yum install -y time.x86_64
     yum install -y util-linux-ng-2.17.2-12.28.el6_9.2.x86_64
+    yum install -y numactl.x86_64
     # Install python 2
     yum install -y python
     yum install -y python-devel

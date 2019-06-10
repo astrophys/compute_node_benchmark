@@ -107,7 +107,8 @@ def main():
     if(not os.path.isdir(workPath)):
         os.mkdir(workPath)
 
-    ## In Linux singularity container add cores per socket and total cores to ompNumThreadsL
+    ## In Linux singularity container add cores per socket and total cores
+    ## to ompNumThreadsL
     if(shutil.which('lscpu') != None):
         # Record raw lscpu, lscpu -e and numactl --hardware
         lscpuLog=open("{}/lscpu.log".format(workPath), "a")
@@ -127,10 +128,16 @@ def main():
         cmd="lscpu | grep 'NUMA node0 CPU' | awk '{print $4}'"
         ## Numa - node
         coresPerNuma = subprocess.getoutput(cmd)
-        coresPerNuma = coresPerNuma.split('-')
-        coresPerNuma[0] = int(coresPerNuma[0])
-        coresPerNuma[1] = int(coresPerNuma[1])
-        coresPerNuma = coresPerNuma[1] - coresPerNuma[0] + 1
+        if('-' in coresPerNuma):
+            coresPerNuma = coresPerNuma.split('-')
+            coresPerNuma[0] = int(coresPerNuma[0])
+            coresPerNuma[1] = int(coresPerNuma[1])
+            coresPerNuma = coresPerNuma[1] - coresPerNuma[0] + 1
+        elif(',' in coresPerNuma):  # Interleave off
+            coresPerNuma = len(coresPerNuma.split(','))
+        else:
+            exit_with_error("ERROR!!! Format for coresPerNuma is not handled"
+                            ": {}".format(coresPerNuma))
         ## Insert
         bisect.insort_left(ompNumThreadsL, coresPerNuma)
         bisect.insort_left(ompNumThreadsL, coresPerSocket)

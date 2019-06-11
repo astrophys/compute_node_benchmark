@@ -39,7 +39,7 @@ Run :
     `driver.log` contains the `stdout` from all the tests, but not `stdout` from running the container. 
     The run time values from the various programs will be printed to `stdout` when running step 4.
 6. (If you are a vendor) Please return (via email) to us :
-    * `driver.log`. Consider making smaller and email attacheable by returning `short_driver.log via `grep -v "Processing Locus" driver.log &> short_driver.log`
+    * `driver.log`. Consider making smaller and email attacheable by returning `short_driver.log` via `grep -v "Processing Locus" driver.log &> short_driver.log`
     * `lscpu.log`
     * The output from `stdout` of running the container (step 4).
 
@@ -73,8 +73,8 @@ E.g.
 23. Follow the steps in the Build / Run section starting with step 1.
 
 #### Warning:
-1. When building the container it will be enormous (i.e. > 10GB). Beware!
-2. The output is also enormous ~10-20GB. Beware!
+1. When building the container it will be enormous (i.e. > 7GB). Beware!
+2. The output is also enormous ~10-15GB. Beware!
 
 #### Devs only:
 1. If you want to unit test particular parts of the Singularity container, you can do this with something like :

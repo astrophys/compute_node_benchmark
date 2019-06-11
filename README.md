@@ -39,7 +39,7 @@ Run :
     `driver.log` contains the `stdout` from all the tests, but not `stdout` from running the container. 
     The run time values from the various programs will be printed to `stdout` when running step 4.
 6. (If you are a vendor) Please return (via email) to us :
-    * `driver.log`
+    * `driver.log`. Consider making smaller and email attacheable by returning `short_driver.log via `grep -v "Processing Locus" driver.log &> short_driver.log`
     * `lscpu.log`
     * The output from `stdout` of running the container (step 4).
 

@@ -41,6 +41,7 @@ def parse_run_time(String, OutDir):
     driverLogF = open("{}/driver.log".format(OutDir), "a")
     driverLogF.write("\n\n\n\n##################################################\n")
     driverLogF.write(String)
+    driverLogF.flush()
     driverLogF.close()
 
     # Parse

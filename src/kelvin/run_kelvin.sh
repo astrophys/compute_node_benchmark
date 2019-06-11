@@ -8,11 +8,14 @@ if [ "$LD_LIBRARY_PATH" ] ; then
 else 
     export LD_LIBRARY_PATH=./
 fi
+export OMP_NUM_THREADS=1
 
 CORES=`fgrep -c processor /proc/cpuinfo`
 echo "CORES = $CORES"
 echo "OUTDIR = $OUTDIR"
 echo "INDIR  = $INDIR"
+echo "OMP_NUM_THREADS= $OMP_NUM_THREADS"
+
 for N in `seq 1 $CORES` ; do 
     #kelvin ${INDIR}/kelvin.conf --PedigreeFile ${INDIR}/single.post > ${OUTDIR}/kelvin.out.$N 2>&1 &
     kelvin ${INDIR}/kelvin.conf > ${OUTDIR}/kelvin.out.$N 2>&1 &

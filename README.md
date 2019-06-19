@@ -35,7 +35,7 @@ Run :
 2. `$ sudo singularity build test.simg Singularity`
 3. `$ sudo chown user:group test.simg`
 4.  Turn hyperthreading off.
-     If it is on, it will break my implentation of how I get core information using lscpu.
+     If it is on, it will break my implentation of how I get core information using `lscpu`.
 5. `$ singularity run -H /home/user test.simg`
 6.  After inspecting the output files, `driver.log` (see `/tmp/benchmarking_out`) and stdout (from running the container), consider deleting `/tmp/benchmarking_out` to clean up your local disk.  
     `driver.log` contains the `stdout` from all the tests, but not `stdout` from running the container. 

@@ -30,4 +30,5 @@ To Do:
 17. Add stringtie and ballgown (if I have time).
 18. Fix simulate_fastq to not use seeded random numbers.
 19. Create larger dataset for hisat.
-
+20. Change simulate_fastq.py data to only test the run time when it is _not_ doing
+    IO.

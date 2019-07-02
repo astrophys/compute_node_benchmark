@@ -34,11 +34,13 @@ Run :
     
 2. `$ sudo singularity build test.simg Singularity`
 3. `$ sudo chown user:group test.simg`
-4. `$ singularity run -H /home/user test.simg`
-5.  After inspecting the output files, `driver.log` (see `/tmp/benchmarking_out`) and stdout (from running the container), consider deleting `/tmp/benchmarking_out` to clean up your local disk.  
+4.  Turn hyperthreading off.
+     If it is on, it will break my implentation of how I get core information using `lscpu`.
+5. `$ singularity run -H /home/user test.simg`
+6.  After inspecting the output files, `driver.log` (see `/tmp/benchmarking_out`) and stdout (from running the container), consider deleting `/tmp/benchmarking_out` to clean up your local disk.  
     `driver.log` contains the `stdout` from all the tests, but not `stdout` from running the container. 
     The run time values from the various programs will be printed to `stdout` when running step 4.
-6. (If you are a vendor) Please return (via email) to us :
+7. (If you are a vendor) Please return (via email) to us :
     * `driver.log`. Consider making smaller and email attacheable by returning `short_driver.log` via `grep -v "Processing Locus" driver.log &> short_driver.log`
     * `lscpu.log`
     * The output from `stdout` of running the container (step 4).
@@ -123,7 +125,8 @@ Downloading directly is slow, which is why I prefer the direct copy.
 This is intended to test machine with : 
 1. `x86_64` architecture, either AMD or Intel CPUs
 2. By default we test up to 20 cores. We autodetect the number of cores in a NUMA node, a socket and all the node's cores. So if a node has more than 20 cores, all the cores should still get tested.
-3. These tests are not indended to test GPUs, FPGAs or the filesystem.
+3. These tests are intended to test machines with hyperthreading _off_.
+4. These tests are not indended to test GPUs, FPGAs or the filesystem.
 
 #### References:
 Below are references for the code that we are testing. Most of this code (other than Stream and Kelvin) are downloaded from the internet at build time.

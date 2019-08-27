@@ -97,10 +97,10 @@ def main():
     workPath   = sys.argv[2]           # Path where all the output/work will be saved.
     refPath    = sys.argv[3]           # Path where all the ref data and indices are located
     ompNumThreadsL = [1,2,5,20]        # Cores used in OMP tasks
-    matrixSizeL = [2000,3000,5000]     # outer dim of mats to run matrix_multiply on
-    #matrixSizeL = [2000,3000]         # outer dim of mats to run matrix_multiply on
-    #rnaSeqSizeL = [10**4,10**5,10**6]   
-    rnaSeqSizeL = [2*10**4,10**5]
+    matrixSizeL = [5000]     # outer dim of mats to run matrix_multiply on
+    #matrixSizeL = [2000,3000,5000]     # outer dim of mats to run matrix_multiply on
+    #rnaSeqSizeL = [10**4,10**5]
+    rnaSeqSizeL = [10**5]
     nTrials     = 3                     # number of trials to test,get stdev and mean
     shortNTrials= 1                # shortened num of trials to test,get stdev and mean
     # Create work path dir if doesn't exist
@@ -369,7 +369,7 @@ def main():
             if(not os.path.isdir("{}/{}".format(outDirPref,size))):
                 os.mkdir("{}/{}".format(outDirPref,size))
 
-            for nThread in ompNumThreadsL:
+            for nThread in [1]:     # Tophat is poorly parallelizable
                 runTimeV = np.zeros([len(sampFileL)])
                 tIdx = 0
                 for samp in sampFileL:

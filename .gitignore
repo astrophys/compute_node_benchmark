@@ -11,7 +11,7 @@ matrix_multiply_non_cache_opt
 *.fq
 tophat_out
 output
-ref
+ref*
 submit*.slrm
 slurm*
 node02

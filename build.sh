@@ -9,6 +9,12 @@
 #   I use relative path names, so this is important
 #
 #
+# HOW TO RUN:
+#   sbatch --mail-type=FAIL,REQUEUE,TIME_LIMIT_90 --mail-user=XX@YY.com build.sh 
+#
+#
+#
+#
 set -e
 
 

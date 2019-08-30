@@ -17,9 +17,9 @@ There are two primary ways of running this code.
 1. Use Singularity container.
 2. Run directly from `run.sh`
 
-The advantage of the Singularity container route is that it ensures that you can run it on any Linux system with Singularity. The downside is that in some tests, there is a serious performance hit. For instance the matrix multiplication done by numpy in the  build_rnaseq_data section on our Intel 2650 processors on Asus motherboards take 86s to run.  Running directly (not from a Singularity container) on the same node it takes 12s.  Numpy / Python must not play nice with Singularity.
+The advantage of the Singularity container route is that it ensures that you can run it on any Linux system with Singularity. The downside is that in some tests, there is a serious performance hit. For instance the matrix multiplication done by numpy in the  build_rnaseq_data section takes 86s (Intel 2650 processors on Asus motherboards).  Running directly (not from a Singularity container) on the same node takes 12s.  Numpy / Python must not play nice with Singularity.
 
-The advantage of running the code directly through `run.sh` is that the performance will be much closer to the actual performance experienced by most applications (i.e. not many applications in our environment run from a Singularity container). The disadvantage is portability. You can use `build.sh` to download, construct and compile the appropriate databases and software. It will likely require more intensive intervention and modification of the bash environment in order to get to work.
+The advantage of running the code directly through `run.sh` is that the performance will be much closer to the actual performance experienced by most applications (i.e. not many applications in our environment run from a Singularity container). The disadvantage is portability. You can use `build.sh` to download, construct and compile the appropriate databases and software. It will likely require more intensive intervention and modification of the bash environment (e.g. `PATH`, `PYTHONPATH`) in order to get to work.
 
 ### Singularity container method
 #### Dependencies:
@@ -99,7 +99,7 @@ E.g.
 Note:
 Typically one would copy `benchmarking_out` from a previous run to `/tmp/prev_benchmarking_out` and then `SINGULARITYENV_PREV_OUTPUT=/tmp/prev_benchmarking_out`
 
-### Running directly (using build.sh and run.sh)
+### Running directly (using build.sh and run.sh):
 #### Dependencies:
 1. You'll need all the software that is installed in the Singularity container. Most of this is typically included in a standard Linux installation.
 

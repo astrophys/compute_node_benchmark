@@ -87,6 +87,7 @@ wget http://cole-trapnell-lab.github.io/cufflinks/assets/downloads/cufflinks-2.2
 tar xvzf cufflinks-2.2.1.Linux_x86_64.tar.gz
 rm cufflinks-2.2.1.Linux_x86_64.tar.gz
 mv cufflinks-2.2.1.Linux_x86_64 cufflinks-2.2.1
+patch cufflinks-2.2.1/cuffmerge ../src/patch/cuffmerge.patch
 
 # Samtools
 wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2

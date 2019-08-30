@@ -73,6 +73,7 @@ Put Help here
     yum install -y time.x86_64
     yum install -y util-linux-ng-2.17.2-12.28.el6_9.2.x86_64
     yum install -y numactl.x86_64
+    yum install -y patch    # For fixing tophat
     # Install python 2
     yum install -y python
     yum install -y python-devel
@@ -176,6 +177,7 @@ Put Help here
     tar xvzf tophat-2.1.1.Linux_x86_64.tar.gz
     rm tophat-2.1.1.Linux_x86_64.tar.gz
     mv tophat-2.1.1.Linux_x86_64 tophat-2.1.1
+    patch tophat-2.1.1/tophat /opt/code/benchmarking/src/patch/tophat.patch # Ensure python2 used
 
     # Hisat
     wget http://ccb.jhu.edu/software/hisat2/dl/hisat2-2.1.0-Linux_x86_64.zip

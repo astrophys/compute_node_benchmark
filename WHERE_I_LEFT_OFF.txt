@@ -37,3 +37,5 @@ To Do:
 21. In functions.py where I get the output from 'time', consider subtracting 
     the 'system' from the 'real'
 22. Use /usr/bin/time and not time b/c it is different!
+
+23. Fix the README.md instructions to include how to use build.sh and run.sh

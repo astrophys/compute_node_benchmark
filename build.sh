@@ -73,6 +73,7 @@ wget https://ccb.jhu.edu/software/tophat/downloads/tophat-2.1.1.Linux_x86_64.tar
 tar xvzf tophat-2.1.1.Linux_x86_64.tar.gz
 rm tophat-2.1.1.Linux_x86_64.tar.gz
 mv tophat-2.1.1.Linux_x86_64 tophat-2.1.1
+patch tophat-2.1.1 ../src/patch/tophat.patch
 
 # Hisat
 wget http://ccb.jhu.edu/software/hisat2/dl/hisat2-2.1.0-Linux_x86_64.zip

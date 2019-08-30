@@ -3,7 +3,8 @@
 # Date : 8/29/19
 # Purpose:
 #   This script downloads and builds software / reference databases to be used
-#   in run.sh
+#   in run.sh. This builds it in the CURRENT working directory. The CURRENT working
+#   directory _must_ be the compute_node_benchmark/ directory.
 #
 #   This will only work if you run this within the compute_node_benchmark directory
 #   I use relative path names, so this is important
@@ -16,11 +17,12 @@
 #
 #
 set -e
+export CURDIR=`pwd`
 
 
 ######## Reference Files ############
-mkdir ref
-cd ref
+mkdir ${CURDIR}/ref
+cd ${CURDIR}/ref
 # Hisat indices
 wget ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38.tar.gz
 tar xvzf grch38.tar.gz
@@ -44,8 +46,8 @@ gunzip Homo_sapiens.GRCh38.83.gtf.gz
 wget http://ftp.ensemblorg.ebi.ac.uk/pub/release-83/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
 gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
 
-cd ../
-cp src/simulate_fastq_data/data/chr1_short* ref
+cd ${CURDIR}
+cp ${CURDIR}/src/simulate_fastq_data/data/chr1_short* ${CURDIR}/ref
 
 ############# Do compilation of files ###################
 ## Cache optimized 
@@ -60,8 +62,8 @@ gcc -fopenmp -O -DSTREAM_ARRAY_SIZE=100000000 src/stream/stream.c -o src/stream/
 
 
 ################ Install necessary software ################
-mkdir software
-cd    software
+mkdir ${CURDIR}/software
+cd    ${CURDIR}/software
 # Bowtie
 wget https://github.com/BenLangmead/bowtie2/releases/download/v2.3.5.1/bowtie2-2.3.5.1-linux-x86_64.zip
 unzip bowtie2-2.3.5.1-linux-x86_64.zip
@@ -97,8 +99,8 @@ mkdir bin
 cp samtools bin/
 
 # Create fai for cufflinks workflow
-export PATH=`pwd`/software/samtools-1.9/bin:$PATH
-cd ref
+export PATH=${CURDIR}/software/samtools-1.9/bin:$PATH
+cd ${CURDIR}/ref
 if [ ! -f "Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai" ]; then 
     samtools faidx Homo_sapiens.GRCh38.dna.primary_assembly.fa
 fi

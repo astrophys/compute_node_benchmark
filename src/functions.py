@@ -47,7 +47,7 @@ def parse_run_time(String, OutDir):
     # Parse
     for string in stringL:
         if("ERROR" in string or "command not found" in string or 
-           "Errno" in string
+           "Errno" in string or "error" in string.lower()
         ):
             exit_with_error("{}\n".format(string))
         elif("Run time :" in string):

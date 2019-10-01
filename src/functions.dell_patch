@@ -1,0 +1,59 @@
+--- src/functions.py	2019-10-01 12:49:41.000000000 -0400
++++ /gpfs0/home/gdhpcgroup/aps003/Code/Singularity/benchmarking/src/functions.py	2019-08-30 07:21:19.671912215 -0400
+@@ -150,8 +150,6 @@
+ 
+     coreNumaD=dict()
+     coreSockD=dict()
+-
+-    
+     ## Create dicts 
+     for idx in range(len(coreL)):
+         # Get core's NUMA node
+@@ -160,24 +158,30 @@
+         # Get core's Socket
+         coreSockD[coreId] = socketL[idx]
+ 
+-    # Let's sort the lists by socket. I think this will fix the difficulties 
+-    # with Dell's funnily archetected 2 socket nodes. This should save me from
+-    # challenges modifying the below code much. In theory I could clean up 
+-    # the below code by utilizing this sorting and make it less awkward. I'm not
+-    # going to do this b/c I don't want to have to test it on many platforms
+-    socketSortL, numaSortL, coreSortL = zip(*sorted(zip(socketL,numaL,coreL)))
+-
++    #import pdb; pdb.set_trace()
+     ## If asking for more threads then cores, just max to number of cores
+     if(len(coreL) < NumThreads):
+         coreId2returnL = coreL
+-        #string=",".join(str(i) for i in coreId2returnL)
+-        #return(string)
++        string=",".join(str(i) for i in coreId2returnL)
++        return(string)
+     else:
+         n = 0              ## Number of cores found
+         numaNode = 0       ## Current NUMA node working on
+         socket   = 0
+-        coreId2returnL = coreSortL[0:NumThreads]
+-        
++        coreId2returnL =[] ## Cores found
++        while(n<NumThreads):
++            for idx in range(len(coreL)):
++                if(numaL[idx] == numaNode and socketL[idx] == socket):
++                    coreId2returnL.append(coreL[idx])
++                    n = n + 1
++                if(n == NumThreads):
++                    break
++
++            if(n >= nCorePerNuma*(numaNode + 1)):
++                numaNode = numaNode + 1
++            # Iterate socket as run out of space
++            if(n >= nCorePerSocket*(socket + 1)):
++                socket = socket + 1
+             
+     # Error Check
+     if(len(coreId2returnL) != NumThreads):
+@@ -204,5 +208,4 @@
+                         " + 1 != len(retSocketL) {}\n".format(len(coreId2returnL),
+                         nCorePerSocket, len(retSocketL)))
+     string=",".join(str(i) for i in coreId2returnL)
+-
+     return(string)
